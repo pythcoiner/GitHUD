@@ -1,0 +1,19 @@
+# Local branches => .git/refs/heads/|
+                                    |-master
+                                    |-dev   <= files
+
+# Remotes branches => .git/refs/remotes/|
+                                        |-origin-|-master
+                                        |        |-dev   <= files
+                                        |
+                                        |-backup-|-master
+                                                 |-dev
+
+# Selected branch => .git/HEAD (file) => ref: refs/heads/master
+
+# Last commit ID => .git/refs/heads/master (file => #################### (commit hash)
+
+# git ls-files -o  => return untracked + ignored files
+# git ls-files -m  => return modified files
+# git ls-files -i  => return ignored files
+# git ls-files -o --exclude-standard  => return only untracked files
