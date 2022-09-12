@@ -1,4 +1,4 @@
-#/home/cc1/python/GitHUD/venv/bin/python3
+
 
 import os
 import sys
@@ -27,7 +27,8 @@ class GitHUD(QWidget):
     def __init__(self):
         QWidget.__init__(self)
         # get config data
-        self.config_file = open('user.conf', 'r')
+        path = os.fspath(Path(__file__).resolve().parent / "user.conf")
+        self.config_file = open(path, 'r')
         self.config = load(self.config_file, Loader)
         self.directory_paths = self.config['path']
 
@@ -536,8 +537,6 @@ class GitHUD(QWidget):
                 out.append(i)
 
         self.branches = out
-
-
 
 
 if __name__ == "__main__":
