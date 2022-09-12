@@ -457,7 +457,7 @@ class GitHUD(QWidget):
     def do_delete_branch(self, branch):
 
         if branch != 'master' and branch != 'main':
-            cmd = f'cd {self.path} && git branch -D {branch}'
+            cmd = f'cd {self.path} && git checkout master && git branch -D {branch}'
             ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if ret.returncode != 0:
                 tooltip = cmd + '\n     ==>    \n' + ret.stderr
