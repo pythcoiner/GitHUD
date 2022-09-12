@@ -1,5 +1,3 @@
-
-
 import os
 import sys
 import subprocess
@@ -66,6 +64,8 @@ class GitHUD(QWidget):
         self.ui.b_commit_push.clicked.connect(self.on_commit_push)
         self.ui.b_ignore.clicked.connect(self.on_ignore)
         self.ui.b_merge.clicked.connect(self.on_merge)
+        self.ui.b_update.clicked.connect(self.on_update)
+
         self.list_projects()
 
         self.update_project()
@@ -164,6 +164,34 @@ class GitHUD(QWidget):
                 self.set_label(txt)
 
             self.update_brch_lock = False
+
+    def update_changes(self):
+        self.tree.clear()
+        if len(self.change_list) > 0 :
+            header = QTreeWidgetItem(self.tree)
+            header.setText(0, "---- Modified files ----")
+            self.tree_list = []
+            for i in self.change_list:
+                elmt = QTreeWidgetItem(self.tree)
+                elmt.setFlags(elmt.flags() | Qt.ItemIsUserCheckable)
+                elmt.setText(0,i)
+                elmt.setToolTip(0, i)
+                elmt.setCheckState(0, Qt.Unchecked)
+                self.tree_list.append(elmt)
+
+        if len(self.cached_change_list) > 0:
+            header = QTreeWidgetItem(self.tree)
+            header.setText(0, "---- Cached files ----")
+            for i in self.cached_change_list:
+
+                elmt = QTreeWidgetItem(self.tree)
+                # elmt.setFlags(elmt.flags() | Qt.ItemIsUserCheckable)
+                elmt.setText(0, i)
+                elmt.setToolTip(0, i)
+                # elmt.setCheckState(0, Qt.Unchecked)
+
+
+            #
 
     def on_branch_choice(self):
         branch = self.ui.combo_branch.currentText()
@@ -267,6 +295,10 @@ class GitHUD(QWidget):
         else:
             txt = f"branch already exist"
             self.set_label(txt)
+
+    def on_update(self):
+        self.check_changes()
+        self.update_changes()
 
     def do_checkout(self, branch):
         self.get_selected_branch()
@@ -476,39 +508,13 @@ class GitHUD(QWidget):
         for i in changes:
             if i != '':
                 out.append(i)
+
+        out = list(set(out))
         self.change_list = out
 
         self.check_cached_changes()
 
         self.update_changes()
-
-    def update_changes(self):
-        self.tree.clear()
-        if len(self.change_list) > 0 :
-            header = QTreeWidgetItem(self.tree)
-            header.setText(0, "---- Modified files ----")
-            self.tree_list = []
-            for i in self.change_list:
-                elmt = QTreeWidgetItem(self.tree)
-                elmt.setFlags(elmt.flags() | Qt.ItemIsUserCheckable)
-                elmt.setText(0,i)
-                elmt.setToolTip(0, i)
-                elmt.setCheckState(0, Qt.Unchecked)
-                self.tree_list.append(elmt)
-
-        if len(self.cached_change_list) > 0:
-            header = QTreeWidgetItem(self.tree)
-            header.setText(0, "---- Cached files ----")
-            for i in self.cached_change_list:
-
-                elmt = QTreeWidgetItem(self.tree)
-                # elmt.setFlags(elmt.flags() | Qt.ItemIsUserCheckable)
-                elmt.setText(0, i)
-                elmt.setToolTip(0, i)
-                # elmt.setCheckState(0, Qt.Unchecked)
-
-
-            #
 
     def check_cached_changes(self):
         cmd = f'cd {self.path} && git diff --name-only --cached'

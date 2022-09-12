@@ -55,9 +55,9 @@
   <widget class="QPushButton" name="b_pull">
    <property name="geometry">
     <rect>
-     <x>150</x>
+     <x>195</x>
      <y>40</y>
-     <width>61</width>
+     <width>41</width>
      <height>25</height>
     </rect>
    </property>
@@ -81,9 +81,9 @@
   <widget class="QComboBox" name="combo_branch">
    <property name="geometry">
     <rect>
-     <x>10</x>
+     <x>70</x>
      <y>40</y>
-     <width>131</width>
+     <width>121</width>
      <height>25</height>
     </rect>
    </property>
@@ -193,14 +193,40 @@
   <widget class="QPushButton" name="b_push">
    <property name="geometry">
     <rect>
-     <x>220</x>
+     <x>240</x>
      <y>40</y>
-     <width>61</width>
+     <width>41</width>
      <height>25</height>
     </rect>
    </property>
    <property name="text">
     <string>Push</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="b_update">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>40</y>
+     <width>25</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>U</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="b_delete">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>40</y>
+     <width>25</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>D</string>
    </property>
   </widget>
  </widget>
