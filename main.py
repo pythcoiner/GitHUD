@@ -300,6 +300,11 @@ class GitHUD(QWidget):
         self.check_changes()
         self.update_changes()
 
+    def on_delete_branch(self):
+
+        branch = self.ui.combo_branch.currentText()
+        self.do_delete_branch(branch)
+
     def do_checkout(self, branch):
         self.get_selected_branch()
         if branch is not None and branch != '' and branch != self.selected_branch:
@@ -447,6 +452,25 @@ class GitHUD(QWidget):
             txt = f'branch already exist!'
             tooltip = f'branch {branch} already exist on local, cannot process do_make_branch()'
             self.set_label(txt, tooltip)
+
+    def do_delete_branch(self, branch):
+
+        if branch != 'master' and branch != 'main':
+            cmd = f'cd {self.path} && git branch -D {branch}'
+            ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if ret.returncode != 0:
+                tooltip = cmd + '\n     ==>    \n' + ret.stderr
+                txt = 'Cannot delete branch!'
+                self.set_label(txt, tooltip)
+                raise ValueError(txt + '\n' + tooltip)
+            else:
+                txt = f'{branch} deleted'
+                tooltip = cmd + '\n     ==>    \n' + ret.stdout
+                self.set_label(txt, tooltip)
+            self.update_branch()
+        else:
+            txt = f'cannot delete master/main!'
+            self.set_label(txt)
 
     def set_label(self, txt , tooltip = None):
         self.ui.label.setText(txt)
