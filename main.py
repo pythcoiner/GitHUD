@@ -65,6 +65,7 @@ class GitHUD(QWidget):
         self.ui.b_ignore.clicked.connect(self.on_ignore)
         self.ui.b_merge.clicked.connect(self.on_merge)
         self.ui.b_update.clicked.connect(self.on_update)
+        self.ui.b_delete.clicked.connect(self.on_delete_branch)
 
         self.list_projects()
 
