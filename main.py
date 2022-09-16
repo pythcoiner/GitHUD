@@ -54,6 +54,8 @@ class GitHUD(QWidget):
         self.change_list = []
         self.cached_change_list = []
 
+        self.tree.itemChanged.connect(self.tree_changed)
+
         self.ui.combo_project.currentTextChanged.connect(self.update_section)
         self.ui.combo_section.currentTextChanged.connect(self.update_branch)
         self.ui.combo_branch.currentTextChanged.connect(self.on_branch_choice)
@@ -70,6 +72,24 @@ class GitHUD(QWidget):
         self.list_projects()
 
         self.update_project()
+
+    def tree_changed(self,item,col):
+        if len(self.tree_list) > 0:
+
+            if item == self.tree_list[0]:
+                if item.checkState(0) == Qt.Checked:
+                    self.select_all_changes()
+                elif item.checkState(0) != Qt.Checked:
+                    self.deselect_all_changes()
+
+    def select_all_changes(self):
+        for i in self.tree_list:
+            i.setCheckState(0, Qt.Checked)
+
+    def deselect_all_changes(self):
+        for i in self.tree_list:
+            i.setCheckState(0, Qt.Unchecked)
+
 
     def build_gui(self):
         loader = QUiLoader()
@@ -172,6 +192,11 @@ class GitHUD(QWidget):
             header = QTreeWidgetItem(self.tree)
             header.setText(0, "---- Modified files ----")
             self.tree_list = []
+            elmt = QTreeWidgetItem(self.tree)
+            elmt.setFlags(elmt.flags() | Qt.ItemIsUserCheckable)
+            elmt.setText(0, "-- All --")
+            elmt.setCheckState(0, Qt.Unchecked)
+            self.tree_list.append(elmt)
             for i in self.change_list:
                 elmt = QTreeWidgetItem(self.tree)
                 elmt.setFlags(elmt.flags() | Qt.ItemIsUserCheckable)
@@ -236,7 +261,7 @@ class GitHUD(QWidget):
 
             for i in self.tree_list:
 
-                if (i.checkState(0) == Qt.CheckState.Checked):
+                if (i.checkState(0) == Qt.CheckState.Checked) and i != self.tree_list[0]:
                     if ' ' in i.text(0):
                         filename = f"'{i.text(0)}'"
                     else:
