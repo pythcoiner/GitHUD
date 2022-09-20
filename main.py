@@ -360,6 +360,11 @@ class GitHUD(QWidget):
             return True
 
     def do_ignore(self,file):
+
+        # quotes marks around filename with spaces make issue w/ gitignore and path.exists()
+        if file[0] == "'" and file[-1] == "'":
+            file = file[1:-1]
+
         path = self.path + '/' + file
         gitignore_path = self.path + '/.gitignore'
         if not os.path.exists(path):
