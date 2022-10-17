@@ -561,7 +561,7 @@ class GitHUD(QWidget):
             branches = []
             for j in content:
                 p = branches_path + self.slash + j
-                if os.path.isfile(p):
+                if os.path.isfile(p) and j != 'HEAD':
                     branches.append(j)
             remotes[i] = branches
 
