@@ -30,6 +30,13 @@ class GitHUD(QWidget):
         self.config = load(self.config_file, Loader)
         self.directory_paths = self.config['path']
 
+        self.os = sys.platform
+        if self.os == 'linux':
+            self.slash = "/"
+        elif self.os == 'windows':
+            self.slash = "\\"
+        print(f'platform = {self.os}')
+
         self.ui = None
         self.build_gui()
         self.tree = self.ui.tree
