@@ -35,6 +35,16 @@ class GitHUD(QWidget):
         self.tree = self.ui.tree
         self.tree_list = []
 
+        if sys.platform == 'win32':
+            self.os = "windows"
+        else:
+            self.os ="unix"
+
+        if self.os == "windows":
+            self.slash = "\\"
+        else:
+            self.slash = "/"
+
         self.projects = []
         self.sections = []
         self.branches = []
@@ -111,9 +121,9 @@ class GitHUD(QWidget):
             for a,b,c in os.walk(i):
                 if '.git' in b:
                     d = a
-                    a = a.split("/")
+                    a = a.split(self.slash)
 
-                    prj = ("/".join(a[:-1])).split(i)
+                    prj = (self.slash.join(a[:-1])).split(i)
                     if len(prj) == 1:
                         prj = prj[0]
                     else:
@@ -365,8 +375,8 @@ class GitHUD(QWidget):
         if file[0] == "'" and file[-1] == "'":
             file = file[1:-1]
 
-        path = self.path + '/' + file
-        gitignore_path = self.path + '/.gitignore'
+        path = self.path + self.slash + file
+        gitignore_path = self.path + self.slash + '.gitignore'
         if not os.path.exists(path):
             txt = f"file don't exist!"
             self.set_label(txt)
@@ -511,27 +521,27 @@ class GitHUD(QWidget):
             self.ui.label.setToolTip(txt)
 
     def get_selected_branch(self):
-        path = self.path + '/.git/HEAD'
+        path = self.path + self.slash +'.git' + self.slash +'HEAD'
         if os.path.exists(path):
             file = open(path,'r')
             line = file.readline()
-            self.selected_branch = line.split('/')[-1][:-1]
+            self.selected_branch = line.split(self.slash)[-1][:-1]
         else:
             self.selected_branch = None
 
     def get_branches(self):
-        branches_path = self.path +  '/.git/refs/heads'
+        branches_path = self.path +  self.slash + '.git' + self.slash +'refs' + self.slash + 'heads'
         content = os.listdir(branches_path)
         branches = []
         for i in content:
-            p = branches_path + '/' + i
+            p = branches_path + self.slash + i
             if os.path.isfile(p):
                 branches.append(i)
         self.branches = branches
         self.local_branches = branches
 
     def get_remotes(self):
-        remotes_path = self.path + '/.git/refs/remotes'
+        remotes_path = self.path + self.slash +'.git' + self.slash +'refs'+ self.slash +'remotes'
         if not os.path.exists(remotes_path):
             self.remotes = None
             return
@@ -539,16 +549,16 @@ class GitHUD(QWidget):
         remotes_list = []
         remotes = {}
         for i in content:
-            p = remotes_path + '/' + i
+            p = remotes_path + self.slash + i
             if os.path.isdir(p):
                 remotes_list.append(i)
 
         for i in remotes_list:
-            branches_path = self.path + '/.git/refs/remotes/' + i
+            branches_path = self.path + self.slash +'.git' + self.slash + 'refs' + self.slash +'remotes' + self.slash + i
             content = os.listdir(branches_path)
             branches = []
             for j in content:
-                p = branches_path + '/' + j
+                p = branches_path + self.slash + j
                 if os.path.isfile(p):
                     branches.append(j)
             remotes[i] = branches
