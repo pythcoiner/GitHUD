@@ -37,8 +37,10 @@ class GitHUD(QWidget):
 
         if sys.platform == 'win32':
             self.os = "windows"
+            self.bash_and = '&'
         else:
             self.os ="unix"
+            self.bash_and = ";"
 
         if self.os == "windows":
             self.slash = "\\"
@@ -344,7 +346,7 @@ class GitHUD(QWidget):
     def do_checkout(self, branch):
         self.get_selected_branch()
         if branch is not None and branch != '' and branch != self.selected_branch:
-            checkout = f'cd {self.path} && git commit -m "change_branch" ; git checkout {branch}'
+            checkout = f'cd {self.path} && git commit -m "change_branch" {self.bash_and} git checkout {branch}'
             ret = subprocess.run(checkout, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if ret.returncode != 0:
                 tooltip = checkout + '\n     ==>    \n' + ret.stderr
@@ -533,7 +535,9 @@ class GitHUD(QWidget):
         branches_path = self.path +  self.slash + '.git' + self.slash +'refs' + self.slash + 'heads'
         content = os.listdir(branches_path)
         branches = []
+        print("Branches:")
         for i in content:
+            print(i)
             p = branches_path + self.slash + i
             if os.path.isfile(p):
                 branches.append(i)
