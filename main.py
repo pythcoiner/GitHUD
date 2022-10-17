@@ -527,7 +527,7 @@ class GitHUD(QWidget):
         if os.path.exists(path):
             file = open(path,'r')
             line = file.readline()
-            self.selected_branch = line.split(self.slash)[-1][:-1]
+            self.selected_branch = line.split('/')[-1][:-1]
         else:
             self.selected_branch = None
 
@@ -535,9 +535,7 @@ class GitHUD(QWidget):
         branches_path = self.path +  self.slash + '.git' + self.slash +'refs' + self.slash + 'heads'
         content = os.listdir(branches_path)
         branches = []
-        print("Branches:")
         for i in content:
-            print(i)
             p = branches_path + self.slash + i
             if os.path.isfile(p):
                 branches.append(i)
@@ -593,7 +591,7 @@ class GitHUD(QWidget):
         for i in changes:
             if i != '':
                 out.append(i)
-        print(out)
+        # print(out)
         self.cached_change_list = out
 
     def process_branches(self):
