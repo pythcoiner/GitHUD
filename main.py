@@ -417,7 +417,7 @@ class GitHUD(QWidget):
             self.set_label(txt)
             return False
 
-        cmd = f"cd {self.path} && git commit -m '{msg}'"
+        cmd = f'cd {self.path} && git commit -m "{msg}"'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if ret.returncode != 0:
             tooltip = cmd + '\n     ==>    \n' + ret.stderr
