@@ -45,9 +45,11 @@ class GitHUD(QWidget):
         if sys.platform == 'win32':
             self.os = "windows"
             self.bash_and = '&'
+            self.bash_2_and = '&'
         else:
             self.os ="unix"
             self.bash_and = ";"
+            self.bash_2_and = '&&'
 
         if self.os == "windows":
             self.slash = "\\"
@@ -353,7 +355,7 @@ class GitHUD(QWidget):
     def do_checkout(self, branch):
         self.get_selected_branch()
         if branch is not None and branch != '' and branch != self.selected_branch:
-            checkout = f'cd {self.path} && git commit -m "change_branch" {self.bash_and} git checkout {branch}'
+            checkout = f'cd {self.path} {self.bash_2_and} git commit -m "change_branch" {self.bash_and} git checkout {branch}'
             ret = subprocess.run(checkout, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if ret.returncode != 0:
                 tooltip = checkout + '\n     ==>    \n' + ret.stderr
@@ -365,7 +367,7 @@ class GitHUD(QWidget):
             self.update_branch(label=False)
 
     def do_merge(self, _from):
-        cmd = f'cd {self.path} && git merge {_from}'
+        cmd = f'cd {self.path} {self.bash_2_and} git merge {_from}'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if ret.returncode != 0:
             tooltip = cmd + '\n     ==>    \n' + ret.stderr
@@ -397,7 +399,7 @@ class GitHUD(QWidget):
         return True
 
     def do_add(self,file):
-        cmd = f'cd {self.path} && git add {file}'
+        cmd = f'cd {self.path} {self.bash_2_and} git add {file}'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if ret.returncode != 0:
             tooltip = cmd + '\n     ==>    \n' + ret.stderr
@@ -417,7 +419,7 @@ class GitHUD(QWidget):
             self.set_label(txt)
             return False
 
-        cmd = f'cd {self.path} && git commit -m "{msg}"'
+        cmd = f'cd {self.path} {self.bash_2_and} git commit -m "{msg}"'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if ret.returncode != 0:
             tooltip = cmd + '\n     ==>    \n' + ret.stderr
@@ -438,7 +440,7 @@ class GitHUD(QWidget):
             self.check_changes()
             if len(self.change_list) == 0 :
                 self.set_label(f"Start pull on branch : {self.selected_branch}")
-                cmd = f'cd {self.path} && git pull origin {self.selected_branch}'
+                cmd = f'cd {self.path} {self.bash_2_and} git pull origin {self.selected_branch}'
                 ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                 if ret.returncode != 0:
                     tooltip = cmd + '\n     ==>    \n' + ret.stderr
@@ -456,7 +458,7 @@ class GitHUD(QWidget):
             self.pull_lock = False
 
     def do_push(self):
-        cmd = f'cd {self.path} && git push origin {self.selected_branch}'
+        cmd = f'cd {self.path} {self.bash_2_and} git push origin {self.selected_branch}'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if ret.returncode != 0:
             tooltip = cmd + '\n     ==>    \n' + ret.stderr
@@ -470,7 +472,7 @@ class GitHUD(QWidget):
             return True
 
     def do_add_branch(self,name):
-        cmd = f'cd {self.path} && git branch {name}'
+        cmd = f'cd {self.path} {self.bash_2_and} git branch {name}'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if ret.returncode != 0:
             tooltip = cmd + '\n     ==>    \n' + ret.stderr
@@ -486,7 +488,7 @@ class GitHUD(QWidget):
     def do_make_branch(self,branch):
         self.get_branches()
         if branch not in self.local_branches and branch is not None and branch != '':
-            cmd = f'cd {self.path} && git branch {branch}'
+            cmd = f'cd {self.path} {self.bash_2_and} git branch {branch}'
             ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if ret.returncode != 0:
                 tooltip = cmd + '\n     ==>    \n' + ret.stderr
@@ -506,7 +508,7 @@ class GitHUD(QWidget):
     def do_delete_branch(self, branch):
 
         if branch != 'master' and branch != 'main':
-            cmd = f'cd {self.path} && git checkout master && git branch -D {branch}'
+            cmd = f'cd {self.path} {self.bash_2_and} git checkout master {self.bash_2_and} git branch -D {branch}'
             ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if ret.returncode != 0:
                 tooltip = cmd + '\n     ==>    \n' + ret.stderr
@@ -575,8 +577,9 @@ class GitHUD(QWidget):
         self.remotes = remotes
 
     def check_changes(self):
-        cmd = f'cd {self.path} && git ls-files -m -d -o --exclude-standard'
+        cmd = f'cd {self.path} {self.bash_2_and} git ls-files -m -d -o --exclude-standard'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=False, text=True)
+
         changes = ret.stdout.split('\n')
         out = []
         for i in changes:
@@ -589,9 +592,10 @@ class GitHUD(QWidget):
         self.check_cached_changes()
 
         self.update_changes()
+        print("--------------")
 
     def check_cached_changes(self):
-        cmd = f'cd {self.path} && git diff --name-only --cached'
+        cmd = f'cd {self.path} {self.bash_2_and} git diff --name-only --cached'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=False, text=True)
         changes = ret.stdout.split('\n')
         out = []
