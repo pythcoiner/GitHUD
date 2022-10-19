@@ -577,13 +577,18 @@ class GitHUD(QWidget):
         self.remotes = remotes
 
     def check_changes(self):
+        print("check_changes()")
         cmd = f'cd {self.path} {self.bash_2_and} git ls-files -m -d -o --exclude-standard'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=False, text=True)
 
         changes = ret.stdout.split('\n')
         out = []
         for i in changes:
-            if i != '':
+            is_lock = False
+            if i.split(self.slash)[-1][:6] == '.~lock':
+                is_lock = True
+
+            if i != '' and not is_lock:
                 out.append(i)
 
         out = list(set(out))
