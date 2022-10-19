@@ -577,7 +577,7 @@ class GitHUD(QWidget):
         self.remotes = remotes
 
     def check_changes(self):
-        print("check_changes()")
+        # print("check_changes()")
         cmd = f'cd {self.path} {self.bash_2_and} git ls-files -m -d -o --exclude-standard'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=False, text=True)
 
@@ -589,14 +589,14 @@ class GitHUD(QWidget):
             if i.split(self.slash)[-1][:6] == '.~lock':
                 is_lock = True
 
-            print(i.split(self.slash)[0])
+            if i.split(self.slash)[-1][-6:] == '.z3bak':
+                is_lock = True
 
             if i.split(self.slash)[0] == '.idea':
                 is_ignored = True
 
             pth = i.split(self.slash)[:-1]
             for p in pth:
-                print(f'p={p}')
                 if p == '__pycache__':
                     is_ignored = True
 
