@@ -585,10 +585,25 @@ class GitHUD(QWidget):
         out = []
         for i in changes:
             is_lock = False
+            is_ignored = False
             if i.split(self.slash)[-1][:6] == '.~lock':
                 is_lock = True
 
-            if i != '' and not is_lock:
+            print(i.split(self.slash)[0])
+
+            if i.split(self.slash)[0] == '.idea':
+                is_ignored = True
+
+            pth = i.split(self.slash)[:-1]
+            for p in pth:
+                print(f'p={p}')
+                if p == '__pycache__':
+                    is_ignored = True
+
+            if i.split(self.slash)[0] == 'venv':
+                is_ignored = True
+
+            if i != '' and not is_lock and not is_ignored:
                 out.append(i)
 
         out = list(set(out))
