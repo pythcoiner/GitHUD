@@ -20,6 +20,68 @@ logging.basicConfig(format=FORMAT)
 log = logging.getLogger()
 log.setLevel(35)
 
+class Progress(QThread):
+
+    def __init__(self,parent):
+        QThread.__init__(self)
+        self.parent = parent
+        self.stop = False
+
+    def __del__(self):
+        self.wait()
+
+    def end(self):
+        self.stop = True
+        print("Progress.end()")
+    def run(self):
+
+        self.parent.ui.progress.setVisible(True)
+
+        self.stop = False
+        i = 0
+        char = ''
+
+        while not self.stop:
+
+
+            time.sleep(0.1)
+            self.parent.ui.progress.setValue(i)
+
+            i += 1
+
+            if i >100:
+                i = 0
+
+        self.parent.ui.progress.setVisible(False)
+
+
+class Bash(QThread):
+    # strt = Signal()
+    end = Signal()
+    ret = Signal(object)
+    def __init__(self, parent):
+        QThread.__init__(self)
+        self.parent = parent
+        self.cmd = ''
+        self.is_running = False
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        print("Bash.run()")
+        # self.strt.emit()
+        self.is_running = True
+        self.parent.progress.start()
+        ret = subprocess.run(self.cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        self.parent.progress.end()
+
+        # self.end.emit()
+        self.ret.emit(ret)
+        self.is_running = False
+        print("Bash.run() ended!")
+
+
 class GitHUD(QWidget):
 
     def __init__(self):
@@ -93,6 +155,15 @@ class GitHUD(QWidget):
         self.list_projects()
 
         self.update_project()
+
+        self.ui.progress.setVisible(False)
+
+        self.bash = Bash(self)
+        self.bash.ret.connect(self.bash_ret)
+        self.bash_action = None
+
+        self.progress = Progress(self)
+        # self.progress.start()
 
     def tree_changed(self,item,col):
         if len(self.tree_list) > 0:
@@ -388,7 +459,6 @@ class GitHUD(QWidget):
         if branch == 'master' or branch == 'main':
             cmd += f' {self.bash_2_and} git branch --delete {_from}'
 
-        print(cmd)
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if ret.returncode != 0:
             tooltip = cmd + '\n     ==>    \n' + ret.stderr
@@ -455,42 +525,74 @@ class GitHUD(QWidget):
             self.ui.msg.setText('')
             return True
 
+    def bash_ret(self, ret):
+
+        if self.bash_action == 'do_pull':
+            self.ret_pull(ret)
+
+        elif self.bash_action == 'do_push':
+            self.ret_push(ret)
+
     def do_pull(self):
-        if not self.pull_lock:
+        if not self.pull_lock and not self.bash.is_running:
             self.pull_lock = True
+
             self.get_selected_branch()
             self.check_changes()
             if len(self.change_list) == 0 :
                 self.set_label(f"Start pull on branch : {self.selected_branch}")
                 cmd = f'cd {self.path} {self.bash_2_and} git pull origin {self.selected_branch}'
-                ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                if ret.returncode != 0:
-                    tooltip = cmd + '\n     ==>    \n' + ret.stderr
-                    txt = f'{self.section[0]} : {self.selected_branch} Cannot pull!'
-                    self.set_label(txt, tooltip)
-                else:
-                    txt = f'{self.section[0]} : {self.selected_branch} is up to date'
-                    tooltip = cmd + '\n     ==>    \n' + ret.stdout
-                    self.set_label(txt, tooltip)
-                self.update_branch(label=False)
+                # ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+                self.bash_action = 'do_pull'
+                self.bash.cmd = cmd
+                self.bash.start()
+
             else:
                 txt = f'commit or delete before pull!'
                 tooltip = 'Some change have not been add / commit, you need to do it before pull'
                 self.set_label(txt, tooltip)
-            self.pull_lock = False
+                self.pull_lock = False
+
+    def ret_pull(self, ret):
+        # print("ret_pull()")
+        if ret.returncode != 0:
+            tooltip = self.bash.cmd + '\n     ==>    \n' + ret.stderr
+            txt = f'{self.section[0]} : {self.selected_branch} Cannot pull!'
+            self.set_label(txt, tooltip)
+
+        else:
+            txt = f'{self.section[0]} : {self.selected_branch} is up to date'
+            tooltip = self.bash.cmd + '\n     ==>    \n' + ret.stdout
+            self.set_label(txt, tooltip)
+        self.update_branch(label=False)
+        self.bash.cmd = ''
+        self.bash_action = None
+        self.pull_lock = False
 
     def do_push(self):
-        cmd = f'cd {self.path} {self.bash_2_and} git push origin {self.selected_branch}'
-        ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if not self.bash.is_running:
+            cmd = f'cd {self.path} {self.bash_2_and} git push origin {self.selected_branch}'
+
+            self.bash_action = 'do_push'
+            self.bash.cmd = cmd
+            self.bash.start()
+        # ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+    def ret_push(self, ret):
         if ret.returncode != 0:
-            tooltip = cmd + '\n     ==>    \n' + ret.stderr
+            tooltip = self.bash.cmd + '\n     ==>    \n' + ret.stderr
             txt = f'push fail!'
             self.set_label(txt, tooltip)
+            self.bash.cmd = ''
+            self.bash_action = None
             return False
         else:
             txt = f'push done successfull'
-            tooltip = cmd + '\n     ==>    \n' + ret.stdout
+            tooltip = self.bash.cmd + '\n     ==>    \n' + ret.stdout
             self.set_label(txt, tooltip)
+            self.bash.cmd = ''
+            self.bash_action = None
             return True
 
     def do_add_branch(self,name):
