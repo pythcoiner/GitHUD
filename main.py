@@ -111,7 +111,6 @@ class GitHUD(QWidget):
         for i in self.tree_list:
             i.setCheckState(0, Qt.Unchecked)
 
-
     def build_gui(self):
         loader = QUiLoader()
         path = os.fspath(Path(__file__).resolve().parent / "window.ui")
@@ -233,13 +232,8 @@ class GitHUD(QWidget):
             for i in self.cached_change_list:
 
                 elmt = QTreeWidgetItem(self.tree)
-                # elmt.setFlags(elmt.flags() | Qt.ItemIsUserCheckable)
                 elmt.setText(0, i)
                 elmt.setToolTip(0, i)
-                # elmt.setCheckState(0, Qt.Unchecked)
-
-
-            #
 
     def on_branch_choice(self):
         branch = self.ui.combo_branch.currentText()
@@ -578,7 +572,7 @@ class GitHUD(QWidget):
         self.remotes = remotes
 
     def check_changes(self):
-        # print("check_changes()")
+        print("check_changes()")
         cmd = f'cd {self.path} {self.bash_2_and} git ls-files -m -d -o --exclude-standard'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=False, text=True)
 
@@ -587,20 +581,46 @@ class GitHUD(QWidget):
         for i in changes:
             is_lock = False
             is_ignored = False
+
+            # hide libreoffice lock files
             if i.split(self.slash)[-1][:6] == '.~lock':
                 is_lock = True
 
+            # hide zw3d back files
             if i.split(self.slash)[-1][-6:] == '.z3bak':
                 is_lock = True
 
+            # hide back files
+            if i.split(self.slash)[-1][-4:] == '.bak':
+                is_lock = True
+
+            # hide winrelais back files
+            if i.split(self.slash)[-1][-4:] == '.xrs' and 'Sauvegarde' in i:
+                is_lock = True
+
+            # hide githud shortcut
+            if i.split(self.slash)[-1] == 'githud.desktop':
+                is_lock = True
+
+            # hide githud conf file
+            if i.split(self.slash)[-1] == 'user.conf':
+                is_lock = True
+
+            # hide githud .gitignore file
+            if self.section[0].lower() == 'githud' and i.split(self.slash)[-1] == '.gitignore':
+                is_lock = True
+
+            # hide jetbrains config files (Pycharm, CLion, etc....)
             if i.split(self.slash)[0] == '.idea':
                 is_ignored = True
 
+            # hide anything in __pycache__ folders
             pth = i.split(self.slash)[:-1]
             for p in pth:
                 if p == '__pycache__':
                     is_ignored = True
 
+            # hide python venv folder
             if i.split(self.slash)[0] == 'venv':
                 is_ignored = True
 
