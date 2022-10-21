@@ -686,7 +686,6 @@ class GitHUD(QWidget):
 
         out = [self.selected_branch] + self.branches
 
-        # out = []
         for i in remotes_branches:
             if i not in out:
                 r_branch = f'<{i}>'
