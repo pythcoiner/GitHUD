@@ -121,10 +121,6 @@ class GitHUD(QWidget):
         self.config = load(self.config_file, Loader)
         self.directory_paths = self.config['path']
 
-
-
-
-
         self.ui = None
         self.build_gui()
         self.tree = self.ui.tree
