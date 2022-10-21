@@ -3,6 +3,7 @@ import sys
 import subprocess
 import logging
 import time
+import shutil
 
 from yaml import load, Loader
 
@@ -32,7 +33,7 @@ class Progress(QThread):
 
     def end(self):
         self.stop = True
-        print("Progress.end()")
+        # print("Progress.end()")
     def run(self):
 
         self.parent.ui.progress.setVisible(True)
@@ -69,7 +70,7 @@ class Bash(QThread):
         self.wait()
 
     def run(self):
-        print("Bash.run()")
+        # print("Bash.run()")
         # self.strt.emit()
         self.is_running = True
         self.parent.disable_buttons()
@@ -81,7 +82,7 @@ class Bash(QThread):
         self.ret.emit(ret)
         self.is_running = False
         self.parent.enable_buttons()
-        print("Bash.run() ended!")
+        # print("Bash.run() ended!")
 
 
 class GitHUD(QWidget):
@@ -99,7 +100,7 @@ class GitHUD(QWidget):
             self.slash = "/"
         elif self.os == 'windows':
             self.slash = "\\"
-        print(f'platform = {self.os}')
+        # print(f'platform = {self.os}')
 
         self.ui = None
         self.build_gui()
@@ -168,7 +169,7 @@ class GitHUD(QWidget):
         # self.progress.start()
 
     def disable_buttons(self):
-        print("disable_buttons()")
+        # print("disable_buttons()")
         self.ui.b_commit.setEnabled(False)
         self.ui.b_commit_push.setEnabled(False)
         self.ui.b_delete.setEnabled(False)
@@ -179,7 +180,7 @@ class GitHUD(QWidget):
         self.ui.b_update.setEnabled(False)
 
     def enable_buttons(self):
-        print("enable_buttons")
+        # print("enable_buttons")
         self.ui.b_commit.setEnabled(True)
         self.ui.b_commit_push.setEnabled(True)
         self.ui.b_delete.setEnabled(True)
@@ -253,6 +254,42 @@ class GitHUD(QWidget):
         projects = {}
         for i in project_list:
             projects[i[0]] = i[1]
+
+        for proj in project_list:
+            for j in proj[1]:
+                path = f'{j[1]}{self.slash}.git{self.slash}config'
+                file = open(path,'r')
+                buff =[]
+                for k in file:
+                    buff.append(k)
+
+                file.close()
+
+                print(f"--------------- {path} ----------------")
+                out = []
+                i = 0
+
+                while i < len(buff):
+                    if '[remote "origin"]' in buff[i]:
+                        break
+                    i += 1
+                if i == len(buff):
+                    continue
+                else:
+                    i += 1
+                    line = buff[i].split(' ')
+                    if line[0] == '\turl' and line[2][:30] == 'http://git.axus-automation.fr/':
+                        line[2] = 'git@git.axus-automation.fr:' + line[2][30:]
+                        line = ' '.join(line)
+                        print('fix:')
+                        print(line)
+                        buff[i] = line
+
+                        shutil.copyfile(path, f'{path}.bak' )
+
+                        file = open(path, 'w')
+                        for i in buff:
+                            file.write(i)
 
         self.projects = projects
 
@@ -331,9 +368,9 @@ class GitHUD(QWidget):
                 elmt.setToolTip(0, i)
 
     def on_branch_choice(self):
-        print("on_branch_choice()")
+        # print("on_branch_choice()")
         branch = self.ui.combo_branch.currentText()
-        print(branch)
+        # print(branch)
 
         if branch == 'master' or branch == 'main':
             self.ui.b_commit.setVisible(False)
@@ -475,7 +512,7 @@ class GitHUD(QWidget):
             self.update_branch(label=False)
 
     def do_merge(self, _from):
-        print("do_merge()")
+        # print("do_merge()")
 
         branch = self.ui.combo_branch.currentText()
 
@@ -700,7 +737,7 @@ class GitHUD(QWidget):
         self.local_branches = branches
 
     def get_remotes(self):
-        print('get_remotes()')
+        # print('get_remotes()')
         remotes_path = self.path + self.slash +'.git' + self.slash +'refs'+ self.slash +'remotes'
         if not os.path.exists(remotes_path):
             self.remotes = None
@@ -722,7 +759,7 @@ class GitHUD(QWidget):
                 if os.path.isfile(p) and j != 'HEAD':
                     branches.append(j)
             remotes[i] = branches
-        print(remotes)
+        # print(remotes)
         self.remotes = remotes
 
     def check_changes(self):
@@ -787,7 +824,7 @@ class GitHUD(QWidget):
         self.check_cached_changes()
 
         self.update_changes()
-        print("--------------")
+        # print("--------------")
 
     def check_cached_changes(self):
         cmd = f'cd {self.path} {self.bash_2_and} git diff --name-only --cached'
@@ -801,8 +838,8 @@ class GitHUD(QWidget):
         self.cached_change_list = out
 
     def process_branches(self):
-        print('process_branches()')
-        print(f'selected branch : {self.selected_branch}')
+        # print('process_branches()')
+        # print(f'selected branch : {self.selected_branch}')
         if self.remotes is None:
             return
 
@@ -822,7 +859,7 @@ class GitHUD(QWidget):
             if i not in out2:
                 out2.append(i)
 
-        print(f'branches:{out2}')
+        # print(f'branches:{out2}')
 
         self.branches = out2
 
