@@ -798,45 +798,45 @@ class GitHUD(QWidget):
             is_ignored = False
 
             # hide libreoffice lock files
-            if i.split(self.slash)[-1][:6] == '.~lock':
+            if i.split("/")[-1][:6] == '.~lock':
                 is_lock = True
 
             # hide zw3d back files
-            if i.split(self.slash)[-1][-6:] == '.z3bak':
+            if i.split("/")[-1][-6:] == '.z3bak':
                 is_lock = True
 
             # hide back files
-            if i.split(self.slash)[-1][-4:] == '.bak':
+            if i.split("/")[-1][-4:] == '.bak':
                 is_lock = True
 
             # hide winrelais back files
-            if i.split(self.slash)[-1][-4:] == '.xrs' and 'Sauvegarde' in i:
+            if i.split("/")[-1][-4:] == '.xrs' and 'Sauvegarde' in i:
                 is_lock = True
 
             # hide githud shortcut
-            if i.split(self.slash)[-1] == 'githud.desktop':
+            if i.split("/")[-1] == 'githud.desktop':
                 is_lock = True
 
             # hide githud conf file
-            if i.split(self.slash)[-1] == 'user.conf':
+            if i.split("/")[-1] == 'user.conf':
                 is_lock = True
 
             # hide githud .gitignore file
-            if self.section[0].lower() == 'githud' and i.split(self.slash)[-1] == '.gitignore':
+            if self.section[0].lower() == 'githud' and i.split("/")[-1] == '.gitignore':
                 is_lock = True
 
             # hide jetbrains config files (Pycharm, CLion, etc....)
-            if i.split(self.slash)[0] == '.idea':
+            if i.split("/")[0] == '.idea':
                 is_ignored = True
 
             # hide anything in __pycache__ folders
-            pth = i.split(self.slash)[:-1]
+            pth = i.split("/")[:-1]
             for p in pth:
                 if p == '__pycache__':
                     is_ignored = True
 
             # hide python venv folder
-            if i.split(self.slash)[0] == 'venv':
+            if i.split("/")[0] == 'venv':
                 is_ignored = True
 
             if i != '' and not is_lock and not is_ignored:
