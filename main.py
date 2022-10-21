@@ -90,6 +90,23 @@ class GitHUD(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
+
+        self.os = sys.platform
+
+        # linux shortcut
+        if self.os == 'linux':
+            path = os.fspath(Path(__file__).resolve().parent / "githud.desktop")
+
+            if not os.path.exists(path):
+                f = open(path,'w')
+                f.write('[Desktop Entry]\n')
+                f.write('Name = GitHUD\n')
+                d = os.getcwd()
+                f.write(f'Exec=/user/bin/python3 {d}/main.py\n')
+                f.write('Terminal=false\n')
+                f.write('Type=Application\n')
+                f.close()
+
         # get config data
         path = os.fspath(Path(__file__).resolve().parent / "user.conf")
 
@@ -104,12 +121,9 @@ class GitHUD(QWidget):
         self.config = load(self.config_file, Loader)
         self.directory_paths = self.config['path']
 
-        self.os = sys.platform
-        if self.os == 'linux':
-            self.slash = "/"
-        elif self.os == 'windows':
-            self.slash = "\\"
-        # print(f'platform = {self.os}')
+
+
+
 
         self.ui = None
         self.build_gui()
