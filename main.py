@@ -172,6 +172,7 @@ class GitHUD(QWidget):
         txt = f"Project: {self.project}"
         self.set_label(txt)
         self.sections = self.projects[self.project]
+        self.sections.sort()
         for i in self.sections:
             self.ui.combo_section.addItem(i[0])
 
