@@ -236,8 +236,26 @@ class GitHUD(QWidget):
                 elmt.setToolTip(0, i)
 
     def on_branch_choice(self):
+        print("on_branch_choice()")
         branch = self.ui.combo_branch.currentText()
+        print(branch)
+
+        if branch == 'master' or branch == 'main':
+            self.ui.b_commit.setVisible(False)
+            self.ui.b_commit_push.setVisible(False)
+            self.ui.b_ignore.setVisible(False)
+
+        else:
+            self.ui.b_commit.setVisible(True)
+            self.ui.b_commit_push.setVisible(True)
+            self.ui.b_ignore.setVisible(True)
+
+        if branch == '':
+            return
+
         if not branch == '--new--':
+            if branch[0] == '<' and branch[-1] == '>':
+                branch = branch[1:-1]
             self.on_branch_change(branch)
         else:
             self.on_new_branch()
@@ -362,7 +380,15 @@ class GitHUD(QWidget):
             self.update_branch(label=False)
 
     def do_merge(self, _from):
+        print("do_merge()")
+
+        branch = self.ui.combo_branch.currentText()
+
         cmd = f'cd {self.path} {self.bash_2_and} git merge {_from}'
+        if branch == 'master' or branch == 'main':
+            cmd += f' {self.bash_2_and} git branch --delete {_from}'
+
+        print(cmd)
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if ret.returncode != 0:
             tooltip = cmd + '\n     ==>    \n' + ret.stderr
@@ -373,6 +399,7 @@ class GitHUD(QWidget):
             txt = f'merged successfully'
             tooltip = cmd + '\n     ==>    \n' + ret.stdout
             self.set_label(txt, tooltip)
+            self.update_section()
             return True
 
     def do_ignore(self,file):
@@ -547,6 +574,7 @@ class GitHUD(QWidget):
         self.local_branches = branches
 
     def get_remotes(self):
+        print('get_remotes()')
         remotes_path = self.path + self.slash +'.git' + self.slash +'refs'+ self.slash +'remotes'
         if not os.path.exists(remotes_path):
             self.remotes = None
@@ -568,7 +596,7 @@ class GitHUD(QWidget):
                 if os.path.isfile(p) and j != 'HEAD':
                     branches.append(j)
             remotes[i] = branches
-
+        print(remotes)
         self.remotes = remotes
 
     def check_changes(self):
@@ -647,21 +675,31 @@ class GitHUD(QWidget):
         self.cached_change_list = out
 
     def process_branches(self):
-        if self.remotes == None:
+        print('process_branches()')
+        print(f'selected branch : {self.selected_branch}')
+        if self.remotes is None:
             return
 
         remotes_branches = []
         for i in self.remotes:
             remotes_branches += self.remotes[i]
 
-        branches = [self.selected_branch] + self.branches + remotes_branches
+        out = [self.selected_branch] + self.branches
 
-        out = []
-        for i in branches:
+        # out = []
+        for i in remotes_branches:
             if i not in out:
-                out.append(i)
+                r_branch = f'<{i}>'
+                out.append(r_branch)
 
-        self.branches = out
+        out2 = []
+        for i in out:
+            if i not in out2:
+                out2.append(i)
+
+        print(f'branches:{out2}')
+
+        self.branches = out2
 
 
 if __name__ == "__main__":
