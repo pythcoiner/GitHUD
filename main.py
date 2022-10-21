@@ -21,6 +21,7 @@ logging.basicConfig(format=FORMAT)
 log = logging.getLogger()
 log.setLevel(35)
 
+
 class Progress(QThread):
 
     def __init__(self,parent):
@@ -91,6 +92,14 @@ class GitHUD(QWidget):
         QWidget.__init__(self)
         # get config data
         path = os.fspath(Path(__file__).resolve().parent / "user.conf")
+
+        if not os.path.exists(path):
+            f = open(path,'w')
+            f.write('---\n')
+            f.write('path: [/home/path/]\n')
+            f.write('user: user\n')
+            f.close()
+
         self.config_file = open(path, 'r')
         self.config = load(self.config_file, Loader)
         self.directory_paths = self.config['path']
@@ -265,7 +274,6 @@ class GitHUD(QWidget):
 
                 file.close()
 
-                # print(f"--------------- {path} ----------------")
                 out = []
                 i = 0
 
@@ -290,6 +298,8 @@ class GitHUD(QWidget):
                         file = open(path, 'w')
                         for i in buff:
                             file.write(i)
+
+                        file.close()
 
         self.projects = projects
 
