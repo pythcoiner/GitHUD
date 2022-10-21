@@ -72,6 +72,7 @@ class Bash(QThread):
         print("Bash.run()")
         # self.strt.emit()
         self.is_running = True
+        self.parent.disable_buttons()
         self.parent.progress.start()
         ret = subprocess.run(self.cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         self.parent.progress.end()
@@ -79,6 +80,7 @@ class Bash(QThread):
         # self.end.emit()
         self.ret.emit(ret)
         self.is_running = False
+        self.parent.enable_buttons()
         print("Bash.run() ended!")
 
 
@@ -164,6 +166,28 @@ class GitHUD(QWidget):
 
         self.progress = Progress(self)
         # self.progress.start()
+
+    def disable_buttons(self):
+        print("disable_buttons()")
+        self.ui.b_commit.setEnabled(False)
+        self.ui.b_commit_push.setEnabled(False)
+        self.ui.b_delete.setEnabled(False)
+        self.ui.b_ignore.setEnabled(False)
+        self.ui.b_merge.setEnabled(False)
+        self.ui.b_pull.setEnabled(False)
+        self.ui.b_push.setEnabled(False)
+        self.ui.b_update.setEnabled(False)
+
+    def enable_buttons(self):
+        print("enable_buttons")
+        self.ui.b_commit.setEnabled(True)
+        self.ui.b_commit_push.setEnabled(True)
+        self.ui.b_delete.setEnabled(True)
+        self.ui.b_ignore.setEnabled(True)
+        self.ui.b_merge.setEnabled(True)
+        self.ui.b_pull.setEnabled(True)
+        self.ui.b_push.setEnabled(True)
+        self.ui.b_update.setEnabled(True)
 
     def tree_changed(self,item,col):
         if len(self.tree_list) > 0:
