@@ -572,7 +572,7 @@ class GitHUD(QWidget):
         self.remotes = remotes
 
     def check_changes(self):
-        print("check_changes()")
+        # print("check_changes()")
         cmd = f'cd {self.path} {self.bash_2_and} git ls-files -m -d -o --exclude-standard'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=False, text=True)
 
