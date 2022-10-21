@@ -265,7 +265,7 @@ class GitHUD(QWidget):
 
                 file.close()
 
-                print(f"--------------- {path} ----------------")
+                # print(f"--------------- {path} ----------------")
                 out = []
                 i = 0
 
