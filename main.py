@@ -811,7 +811,7 @@ class GitHUD(QWidget):
             txt = f'merged successfully'
             tooltip = cmd + '\n     ==>    \n' + ret.stdout
             self.set_label(txt, tooltip)
-            self.update_section()
+            # self.update_section()
             return True
 
     def do_ignore(self,file):
