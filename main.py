@@ -174,6 +174,12 @@ class GitHUD(QWidget):
         self.ui.b_update.clicked.connect(self.on_update)
         self.ui.b_delete.clicked.connect(self.on_delete_branch)
 
+        self.ui.b_delete.setIcon(QIcon("icon/cross-button.png"))
+        self.ui.b_update.setIcon(QIcon("icon/arrow-circle-315.png"))
+
+        self.ui.b_pull.setIcon(QIcon("icon/arrow-skip-270.png"))
+        self.ui.b_push.setIcon(QIcon("icon/arrow-skip-090.png"))
+
         self.list_projects()
 
         self.update_project()

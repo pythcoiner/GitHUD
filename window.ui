@@ -62,7 +62,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Pull</string>
+    <string/>
    </property>
   </widget>
   <widget class="QPushButton" name="b_merge">
@@ -200,7 +200,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Push</string>
+    <string/>
    </property>
   </widget>
   <widget class="QPushButton" name="b_update">
@@ -213,7 +213,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>U</string>
+    <string/>
    </property>
   </widget>
   <widget class="QPushButton" name="b_delete">
@@ -226,7 +226,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>D</string>
+    <string/>
    </property>
   </widget>
   <widget class="QProgressBar" name="progress">
