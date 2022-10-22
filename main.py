@@ -576,22 +576,22 @@ class GitHUD(QWidget):
         self.expand_all()
 
 
-    def update_project(self):
-        self.ui.combo_project.clear()
-        self.ui.combo_project.addItems(self.projects)
-
-    def update_section(self):
-        self.ui.combo_section.clear()
-        self.project = self.ui.combo_project.currentText()
-        txt = f"Project: {self.project}"
-        self.set_label(txt)
-        self.sections = self.projects[self.project]
-        self.sections.sort()
-        for i in self.sections:
-            self.ui.combo_section.addItem(i[0])
-
-        txt = f'{self.section[0]} : {self.selected_branch}'
-        self.set_label(txt)
+    # def update_project(self):
+    #     self.ui.combo_project.clear()
+    #     self.ui.combo_project.addItems(self.projects)
+    #
+    # def update_section(self):
+    #     self.ui.combo_section.clear()
+    #     self.project = self.ui.combo_project.currentText()
+    #     txt = f"Project: {self.project}"
+    #     self.set_label(txt)
+    #     self.sections = self.projects[self.project]
+    #     self.sections.sort()
+    #     for i in self.sections:
+    #         self.ui.combo_section.addItem(i[0])
+    #
+    #     txt = f'{self.section[0]} : {self.selected_branch}'
+    #     self.set_label(txt)
 
     def update_branch(self, label=True):
         # print("update_branch()")
