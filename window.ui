@@ -55,9 +55,9 @@
   <widget class="QPushButton" name="b_pull">
    <property name="geometry">
     <rect>
-     <x>195</x>
+     <x>225</x>
      <y>40</y>
-     <width>41</width>
+     <width>25</width>
      <height>25</height>
     </rect>
    </property>
@@ -83,7 +83,7 @@
     <rect>
      <x>70</x>
      <y>40</y>
-     <width>121</width>
+     <width>150</width>
      <height>25</height>
     </rect>
    </property>
@@ -193,9 +193,9 @@
   <widget class="QPushButton" name="b_push">
    <property name="geometry">
     <rect>
-     <x>240</x>
+     <x>257</x>
      <y>40</y>
-     <width>41</width>
+     <width>25</width>
      <height>25</height>
     </rect>
    </property>

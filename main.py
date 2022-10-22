@@ -9,7 +9,7 @@ from yaml import load, Loader
 
 from pathlib import Path
 
-from PySide2.QtWidgets import QApplication, QWidget, QLabel, QTableWidgetItem, QPushButton, QStyle, QMainWindow, QTreeWidget, QTreeWidgetItem
+from PySide2.QtWidgets import QApplication, QWidget, QLabel, QTableWidgetItem, QPushButton, QStyle, QMainWindow, QTreeWidget, QTreeWidgetItem, QHBoxLayout
 from PySide2.QtCore import QFile, QThread, Signal, Qt
 from PySide2 import QtCore
 from PySide2.QtGui import QIcon, QPixmap, QPalette, QColor, QClipboard, QGuiApplication
@@ -180,6 +180,7 @@ class GitHUD(QWidget):
         self.ui.b_pull.setIcon(QIcon("icon/arrow-skip-270.png"))
         self.ui.b_push.setIcon(QIcon("icon/arrow-skip-090.png"))
 
+    
         self.list_projects()
 
         self.update_project()
