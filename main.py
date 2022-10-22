@@ -41,7 +41,6 @@ class Progress(QThread):
     def run(self):
 
         self.parent.ui.progress.setVisible(True)
-
         self.stop = False
         i = 0
 
