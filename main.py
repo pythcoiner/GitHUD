@@ -388,7 +388,6 @@ class GitHUD(QWidget):
     def updates_repo_status(self):
         self.status_update.start()
 
-
     def check_repo_status(self, repo):
         print(f"check_repo_status({repo.name})")
         cmd = f'cd {repo.os_path} {self.bash_2_and} git fetch -v --dry-run'
@@ -407,7 +406,6 @@ class GitHUD(QWidget):
                     repo.set_need_pull(True)
                 elif i[-1] == 'origin/master' and i[1] == '=' :
                     repo.set_need_pull(False)
-
 
     def on_repo_selected(self, index):
         # print("GitHUD.on_repo_selected()")
@@ -809,6 +807,8 @@ class GitHUD(QWidget):
             tooltip = cmd + '\n     ==>    \n' + ret.stdout
             self.set_label(txt, tooltip)
             # self.update_section()
+            self.update_branch()
+
             return True
 
     def do_ignore(self,file):
