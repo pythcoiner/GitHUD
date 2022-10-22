@@ -47,7 +47,7 @@ class Progress(QThread):
 
         while not self.stop:
 
-            # time.sleep(0.1)
+            time.sleep(0.2)
             self.parent.ui.progress.setValue(i)
 
             i += 1
