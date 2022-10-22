@@ -12,7 +12,7 @@ from pathlib import Path
 from PySide2.QtWidgets import QApplication, QWidget, QLabel, QTableWidgetItem, QPushButton, QStyle, QMainWindow, QTreeWidget, QTreeWidgetItem, QHBoxLayout
 from PySide2.QtCore import QFile, QThread, Signal, Qt
 from PySide2 import QtCore
-from PySide2.QtGui import QIcon, QPixmap, QPalette, QColor, QClipboard, QGuiApplication
+from PySide2.QtGui import QIcon, QPixmap, QPalette, QColor, QClipboard, QGuiApplication, QPainter
 from PySide2.QtUiTools import QUiLoader
 
 
@@ -180,7 +180,6 @@ class GitHUD(QWidget):
         self.ui.b_pull.setIcon(QIcon("icon/arrow-skip-270.png"))
         self.ui.b_push.setIcon(QIcon("icon/arrow-skip-090.png"))
 
-    
         self.list_projects()
 
         self.update_project()
@@ -376,6 +375,8 @@ class GitHUD(QWidget):
             elmt.setFlags(elmt.flags() | Qt.ItemIsUserCheckable)
             elmt.setText(0, "-- All --")
             elmt.setCheckState(0, Qt.Unchecked)
+
+
             self.tree_list.append(elmt)
             for i in self.change_list:
                 elmt = QTreeWidgetItem(self.tree)
