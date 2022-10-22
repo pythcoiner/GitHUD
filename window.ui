@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>291</width>
-    <height>462</height>
+    <height>700</height>
    </rect>
   </property>
   <property name="mouseTracking">
@@ -19,21 +19,11 @@
   <property name="whatsThis">
    <string/>
   </property>
-  <widget class="QComboBox" name="combo_project">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>131</width>
-     <height>25</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QComboBox" name="combo_merge">
    <property name="geometry">
     <rect>
      <x>150</x>
-     <y>390</y>
+     <y>630</y>
      <width>131</width>
      <height>25</height>
     </rect>
@@ -43,7 +33,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>360</y>
+     <y>600</y>
      <width>71</width>
      <height>25</height>
     </rect>
@@ -56,7 +46,7 @@
    <property name="geometry">
     <rect>
      <x>225</x>
-     <y>40</y>
+     <y>280</y>
      <width>25</width>
      <height>25</height>
     </rect>
@@ -69,7 +59,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>390</y>
+     <y>630</y>
      <width>91</width>
      <height>25</height>
     </rect>
@@ -82,7 +72,7 @@
    <property name="geometry">
     <rect>
      <x>70</x>
-     <y>40</y>
+     <y>280</y>
      <width>150</width>
      <height>25</height>
     </rect>
@@ -92,7 +82,7 @@
    <property name="geometry">
     <rect>
      <x>90</x>
-     <y>360</y>
+     <y>600</y>
      <width>91</width>
      <height>25</height>
     </rect>
@@ -101,21 +91,11 @@
     <string>C + Push</string>
    </property>
   </widget>
-  <widget class="QComboBox" name="combo_section">
-   <property name="geometry">
-    <rect>
-     <x>150</x>
-     <y>10</y>
-     <width>131</width>
-     <height>25</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QLineEdit" name="msg">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>330</y>
+     <y>570</y>
      <width>271</width>
      <height>25</height>
     </rect>
@@ -125,7 +105,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>420</y>
+     <y>660</y>
      <width>271</width>
      <height>31</height>
     </rect>
@@ -141,7 +121,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>71</y>
+     <y>311</y>
      <width>271</width>
      <height>251</height>
     </rect>
@@ -168,7 +148,7 @@
    <property name="geometry">
     <rect>
      <x>190</x>
-     <y>360</y>
+     <y>600</y>
      <width>91</width>
      <height>25</height>
     </rect>
@@ -181,7 +161,7 @@
    <property name="geometry">
     <rect>
      <x>110</x>
-     <y>391</y>
+     <y>631</y>
      <width>41</width>
      <height>20</height>
     </rect>
@@ -194,7 +174,7 @@
    <property name="geometry">
     <rect>
      <x>257</x>
-     <y>40</y>
+     <y>280</y>
      <width>25</width>
      <height>25</height>
     </rect>
@@ -207,7 +187,7 @@
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>40</y>
+     <y>280</y>
      <width>25</width>
      <height>25</height>
     </rect>
@@ -220,7 +200,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>40</y>
+     <y>280</y>
      <width>25</width>
      <height>25</height>
     </rect>
@@ -233,7 +213,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>420</y>
+     <y>660</y>
      <width>271</width>
      <height>31</height>
     </rect>
@@ -243,6 +223,29 @@
    </property>
    <property name="textVisible">
     <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QTreeView" name="folder_tree">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>40</y>
+     <width>271</width>
+     <height>231</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="update_tree">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>25</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
    </property>
   </widget>
  </widget>

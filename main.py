@@ -5,6 +5,8 @@ import logging
 import time
 import shutil
 
+import re
+
 from yaml import load, Loader
 
 from pathlib import Path
@@ -12,7 +14,7 @@ from pathlib import Path
 from PySide2.QtWidgets import QApplication, QWidget, QLabel, QTableWidgetItem, QPushButton, QStyle, QMainWindow, QTreeWidget, QTreeWidgetItem, QHBoxLayout
 from PySide2.QtCore import QFile, QThread, Signal, Qt
 from PySide2 import QtCore
-from PySide2.QtGui import QIcon, QPixmap, QPalette, QColor, QClipboard, QGuiApplication, QPainter
+from PySide2.QtGui import QIcon, QPixmap, QPalette, QColor, QClipboard, QGuiApplication, QPainter, QStandardItem, QStandardItemModel
 from PySide2.QtUiTools import QUiLoader
 
 
@@ -20,6 +22,7 @@ FORMAT = '%(message)s'
 logging.basicConfig(format=FORMAT)
 log = logging.getLogger()
 log.setLevel(35)
+
 
 
 class Progress(QThread):
@@ -84,6 +87,157 @@ class Bash(QThread):
         self.is_running = False
         self.parent.enable_buttons()
         # print("Bash.run() ended!")
+
+
+class Update(QThread):
+
+    def __init__(self, parent):
+        QThread.__init__(self)
+        self.parent = parent
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        print("start updating repositories status")
+        self.parent.ui.update_tree.setEnabled(False)
+        items = self.parent.list_items()
+
+        buff = []
+        for i in items:
+            if i.is_repo:
+                buff.append(i)
+
+        items = buff
+
+        for i in buff:
+            i.status_checked = False
+            i.update_icon()
+
+        for i in items:
+            if type(i) == Folder:
+                if i.is_repo:
+                    self.parent.check_repo_status(i)
+        self.parent.ui.update_tree.setEnabled(True)
+        print("update ended")
+
+
+class Folder(QStandardItem):
+
+    def __init__(self, path, parent=None):
+        QStandardItem.__init__(self)
+        self.setEditable(False)
+        # print(f"Folder.__init__(path={path}, parent={parent})")
+        self.os_path = None
+        self.path = path
+        if parent is not None:
+            self.depth = parent.depth + 1
+            self.parent = parent
+        else:
+            self.depth = 0
+            self.parent = None
+
+        if sys.platform == "win32":
+            self.slash = '\\'
+        else:
+            self.slash = '/'
+
+        self.name = self.path.split(self.slash)[-1]
+        if self.name == '':
+            self.name = self.slash
+
+        self.is_repo = False
+        self.need_pull = False
+        self.need_push = False
+        self.status_error = False
+        self.status_checked = True
+
+        self.setText(self.name)
+        self.update_icon()
+
+        self.folders = []
+        self.files = []
+
+    def __repr__(self):
+        if self.parent is not None:
+            parent = self.parent.path
+        else:
+            parent = None
+        return f'Folder(path={self.path}, name={self.name}, depth={self.depth}, parent={parent}, ' \
+               f'folders={len(self.folders)}, files={len(self.files)})'
+
+    def make_folder(self,name):
+        # print(f"Folder.make_folder({name})")
+        path = self.path + self.slash + name
+        _folder = Folder(path,self)
+        self.folders.append(_folder)
+        self.appendRow(_folder)
+        return _folder
+
+    def make_repo(self):
+        self.is_repo = True
+
+    def get_folder(self, path):
+        # print(f"Folder.get_folder({path})")
+        pth = path.split(self.slash)
+        exist = False
+        _folder = None
+
+        if len(pth) > 1:
+            p = self.slash.join(pth[1:])
+            f = self.get_folder(pth[0])
+            _folder = f.get_folder(p)
+
+        else:
+            name = path
+            if len(self.folders) > 0:
+
+                for i in self.folders:
+                    if i.name == name:
+                        exist = True
+                        _folder = i
+
+            if not exist:
+                _folder = self.make_folder(name)
+
+        return _folder
+
+    def add_folder(self, folder):
+        folder.parent = self
+        folder.path = self.path + self.slash + folder.path
+        folder.depth = self.depth + 1
+        self.folders.append(folder)
+
+    def set_need_pull(self, pull):
+        self.need_pull = pull
+        self.update_icon()
+
+    def set_need_push(self, push):
+        self.need_push = push
+        self.update_icon()
+
+    def set_error(self, error):
+        self.status_error = error
+        self.update_icon()
+
+    def update_icon(self):
+
+        if not self.status_checked:
+            self.setIcon(QIcon("icon/arrow-circle-315.png"))
+        elif self.status_error:
+            self.setIcon(QIcon("icon/exclamation-red.png"))
+        elif self.is_repo:
+            if self.need_pull:
+                self.setIcon(QIcon("icon/drive-download.png"))
+            elif self.need_push:
+                self.setIcon(QIcon("icon/drive-upload.png"))
+            else:
+                self.setIcon(QIcon("icon/drive.png"))
+        else:
+            if self.parent is None:
+                self.setIcon(QIcon('icon/drive.png'))
+            else:
+                self.setIcon(QIcon('icon/folder-horizontal.png'))
 
 
 class GitHUD(QWidget):
@@ -161,9 +315,11 @@ class GitHUD(QWidget):
 
         self.tree.itemChanged.connect(self.tree_changed)
 
-        self.ui.combo_project.currentTextChanged.connect(self.update_section)
-        self.ui.combo_section.currentTextChanged.connect(self.update_branch)
+        self.ui.folder_tree.setHeaderHidden(True)
+
         self.ui.combo_branch.currentTextChanged.connect(self.on_branch_choice)
+
+        self.ui.update_tree.clicked.connect(self.updates_repo_status)
 
         self.ui.b_pull.clicked.connect(self.on_pull)
         self.ui.b_push.clicked.connect(self.on_push)
@@ -176,13 +332,18 @@ class GitHUD(QWidget):
 
         self.ui.b_delete.setIcon(QIcon("icon/cross-button.png"))
         self.ui.b_update.setIcon(QIcon("icon/arrow-circle-315.png"))
+        self.ui.update_tree.setIcon(QIcon("icon/arrow-circle-315.png"))
 
         self.ui.b_pull.setIcon(QIcon("icon/arrow-skip-270.png"))
         self.ui.b_push.setIcon(QIcon("icon/arrow-skip-090.png"))
 
-        self.list_projects()
+        self.root = None
+        self.model = QStandardItemModel(self.ui.folder_tree)
 
-        self.update_project()
+        self.ui.folder_tree.doubleClicked.connect(self.on_repo_selected)
+
+        self.list_projects()
+        self.build_tree()
 
         self.ui.progress.setVisible(False)
 
@@ -190,8 +351,74 @@ class GitHUD(QWidget):
         self.bash.ret.connect(self.bash_ret)
         self.bash_action = None
 
+        self.status_update = Update(self)
+
+        self.updates_repo_status()
+
         self.progress = Progress(self)
-        # self.progress.start()
+        self.disable_buttons()
+
+    def iter_items(self, root):
+        if root is not None:
+            stack = [root]
+            while stack:
+                parent = stack.pop(0)
+                for row in range(parent.rowCount()):
+                    for column in range(parent.columnCount()):
+                        child = parent.child(row, column)
+                        yield child
+                        if child.hasChildren():
+                            stack.append(child)
+
+    def list_items(self):
+        """
+        List all items (Folders/Files) in self.ui.folder_tree
+        :return: [items]
+        """
+        out = []
+        root = self.ui.folder_tree.model().invisibleRootItem()
+        for item in self.iter_items(root):
+            out.append(item)
+
+        return out
+
+    def expand_all(self):
+        items = self.list_items()
+        for item in items:
+            idx = item.index()
+            self.ui.folder_tree.setExpanded(idx, True)
+
+    def updates_repo_status(self):
+        self.status_update.start()
+
+
+    def check_repo_status(self, repo):
+        # print(f"check_repo_status({repo.name})")
+        cmd = f'cd {repo.os_path} {self.bash_2_and} git fetch -v --dry-run'
+        ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        # print(ret.stderr)
+        ret = ret.stderr.splitlines()
+        repo.status_checked = True
+        if ret == []:
+            repo.set_error(True)
+        else:
+            for i in ret:
+                i = re.sub(' +', ' ', i)
+                i = i.split(' ')
+                # print(f"a={i[-1] == 'origin/master'}, b={i[1] != '='}")
+                if i[-1] == 'origin/master' and i[1] != '=' :
+                    repo.set_need_pull(True)
+                elif i[-1] == 'origin/master' and i[1] == '=' :
+                    repo.set_need_pull(False)
+
+
+    def on_repo_selected(self, index):
+        # print("GitHUD.on_repo_selected()")
+        item = self.model.itemFromIndex(index)
+        self.path = item.os_path
+        section = self.path.split(self.slash)[-1]
+        self.section = [section, self.path]
+        self.update_branch()
 
     def disable_buttons(self):
         # print("disable_buttons()")
@@ -250,6 +477,7 @@ class GitHUD(QWidget):
                 raise ValueError("Path dont exist, please check user.conf")
 
             for a,b,c in os.walk(i):
+                # a=path , b=folders[], c=files[]
                 if '.git' in b:
                     d = a
                     a = a.split(self.slash)
@@ -319,6 +547,35 @@ class GitHUD(QWidget):
 
         self.projects = projects
 
+    def build_tree(self):
+
+        projects = self.projects
+
+        out = []
+        for i in projects:
+            for j in projects[i]:
+                original = j[1]
+                if j[1][0] == self.slash:
+                    j[1] = j[1][1:]
+                out.append([j[1], original])
+
+        projects = out
+
+        home = projects[0][0].split(self.slash)[0]
+
+        self.root = Folder(home)
+
+        for i in projects:
+            repo = self.root.get_folder(i[0])
+            repo.os_path = i[1]
+            repo.make_repo()
+
+        self.model.appendRow(self.root)
+        self.ui.folder_tree.setModel(self.model)
+
+        self.expand_all()
+
+
     def update_project(self):
         self.ui.combo_project.clear()
         self.ui.combo_project.addItems(self.projects)
@@ -336,17 +593,11 @@ class GitHUD(QWidget):
         txt = f'{self.section[0]} : {self.selected_branch}'
         self.set_label(txt)
 
-    def update_branch(self, label = True):
+    def update_branch(self, label=True):
+        # print("update_branch()")
 
         if not self.update_brch_lock :
             self.update_brch_lock = True
-            section = self.ui.combo_section.currentText()
-            for i in self.sections:
-                if i[0] == section:
-                    self.section = i
-                    break
-
-            self.path = self.section[1]
             self.get_branches()
             self.get_remotes()
             self.get_selected_branch()
@@ -355,7 +606,8 @@ class GitHUD(QWidget):
             self.ui.combo_branch.clear()
             self.ui.combo_branch.addItems(self.branches + ['--new--'])
             branches = self.branches
-            branches.remove(self.selected_branch)
+            if len(branches) > 0:
+                branches.remove(self.selected_branch)
             self.ui.combo_merge.clear()
             self.ui.combo_merge.addItems(branches)
 
@@ -364,6 +616,7 @@ class GitHUD(QWidget):
                 self.set_label(txt)
 
             self.update_brch_lock = False
+            self.enable_buttons()
 
     def update_changes(self):
         self.tree.clear()
@@ -371,11 +624,11 @@ class GitHUD(QWidget):
             header = QTreeWidgetItem(self.tree)
             header.setText(0, "---- Modified files ----")
             self.tree_list = []
+
             elmt = QTreeWidgetItem(self.tree)
             elmt.setFlags(elmt.flags() | Qt.ItemIsUserCheckable)
             elmt.setText(0, "-- All --")
             elmt.setCheckState(0, Qt.Unchecked)
-
 
             self.tree_list.append(elmt)
             for i in self.change_list:
@@ -631,7 +884,6 @@ class GitHUD(QWidget):
             if len(self.change_list) == 0 :
                 self.set_label(f"Start pull on branch : {self.selected_branch}")
                 cmd = f'cd {self.path} {self.bash_2_and} git pull origin {self.selected_branch}'
-                # ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
                 self.bash_action = 'do_pull'
                 self.bash.cmd = cmd
@@ -892,6 +1144,8 @@ class GitHUD(QWidget):
         self.branches = out2
 
 
+
+
 if __name__ == "__main__":
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
     app = QApplication([])
@@ -921,4 +1175,12 @@ if __name__ == "__main__":
     clipboard = app.clipboard()
 
     sys.exit(app.exec_())
+
+
+
+
+
+
+
+
 

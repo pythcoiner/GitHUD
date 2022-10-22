@@ -17,3 +17,5 @@
 # git ls-files -m  => return modified files
 # git ls-files -i  => return ignored files
 # git ls-files -o --exclude-standard  => return only untracked files
+
+linux / openwith => xdg-mime query default $(xdg-mime query filetype $1)
