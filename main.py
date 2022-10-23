@@ -117,6 +117,30 @@ class Update(QThread):
         self.parent.ui.update_tree.setEnabled(True)
         print("update ended")
 
+class UpdateProgress(QThread):
+    in_progress = Signal()
+    ended = Signal()
+
+    def __init__(self, parent):
+        QThread.__init__(self)
+        self.parent = parent
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        if self.parent.bash.is_running:
+            i = self.parent.ui.progress.value()
+            i += 2
+            if i > 100:
+                i = 0
+            print(f"update_progress(i={i})")
+            self.parent.ui.progress.setValue(i)
+            time.sleep(0.03)
+            self.in_progress.emit()
+        else:
+            self.ended.emit()
+
 
 class Folder(QStandardItem):
 
@@ -363,7 +387,10 @@ class GitHUD(QWidget):
         self.bash.ret.connect(self.bash_ret)
         self.bash_action = None
 
-        self.in_progress.connect(self.update_progress)
+        self.progress = UpdateProgress(self)
+
+        self.progress.in_progress.connect(self.progress.start)
+        self.progress.ended.connect(self.end_progress)
 
         self.status_update = Update(self)
 
@@ -374,25 +401,14 @@ class GitHUD(QWidget):
     def start_progress(self):
         self.disable_buttons()
         self.ui.progress.setVisible(True)
-        self.in_progress.emit()
+        self.progress.start()
 
-    def update_progress(self):
+    def end_progress(self):
+        self.ui.progress.setValue(0)
+        self.ui.progress.setVisible(False)
+        self.enable_buttons()
 
-        if self.bash.is_running:
-            i = self.ui.progress.value()
-            i += 2
-            if i > 100:
-                i = 0
-            print(f"update_progress(i={i})")
-            self.ui.progress.setValue(i)
-            time.sleep(0.03)
-            self.in_progress.emit()
-        else:
-            print('reset')
-            self.ui.progress.setValue(0)
-            self.ui.progress.setVisible(False)
-            time.sleep(0.1)
-            self.enable_buttons()
+
 
     def iter_items(self, root):
         if root is not None:
