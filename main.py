@@ -461,7 +461,7 @@ class GitHUD(QWidget):
         self.update_branch()
 
     def disable_buttons(self):
-        # print("disable_buttons()")
+        print("disable_buttons()")
         self.ui.b_commit.setEnabled(False)
         self.ui.b_commit_push.setEnabled(False)
         self.ui.b_delete.setEnabled(False)
@@ -472,7 +472,7 @@ class GitHUD(QWidget):
         self.ui.b_update.setEnabled(False)
 
     def enable_buttons(self):
-        # print("enable_buttons")
+        print("enable_buttons")
         self.ui.b_commit.setEnabled(True)
         self.ui.b_commit_push.setEnabled(True)
         self.ui.b_delete.setEnabled(True)
