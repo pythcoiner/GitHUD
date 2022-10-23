@@ -350,7 +350,6 @@ class GitHUD(QWidget):
 
         self.ui.update_tree.clicked.connect(self.updates_repo_status)
 
-
         self.ui.b_pull.clicked.connect(self.on_pull)
         self.ui.b_push.clicked.connect(self.on_push)
         self.ui.b_commit.clicked.connect(self.on_commit)
