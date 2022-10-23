@@ -394,7 +394,6 @@ class GitHUD(QWidget):
             time.sleep(0.1)
             self.enable_buttons()
 
-
     def iter_items(self, root):
         if root is not None:
             stack = [root]
