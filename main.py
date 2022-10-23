@@ -380,6 +380,7 @@ class GitHUD(QWidget):
         self.ui.progress.setVisible(True)
         self.in_progress.emit()
 
+
     def update_progress(self):
 
         if self.bash.is_running:
