@@ -1137,6 +1137,7 @@ class GitHUD(QWidget):
         self.branches = out2
 
 
+
 if __name__ == "__main__":
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
     app = QApplication([])
