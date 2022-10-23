@@ -49,7 +49,7 @@ class Progress(QThread):
         while not self.stop:
             # print(i)
             i = round((self.start_time - time.time())*100)
-
+            print(i)
             self.parent.ui.progress.setValue(i)
 
             if i > 100:
