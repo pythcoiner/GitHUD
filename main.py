@@ -24,40 +24,6 @@ log = logging.getLogger()
 log.setLevel(35)
 
 
-# class Progress(QThread):
-#
-#     def __init__(self,parent):
-#         QThread.__init__(self)
-#         self.parent = parent
-#         self.stop = False
-#         self.start_time = None
-#
-#     def __del__(self):
-#         self.wait()
-#
-#     def end(self):
-#         self.stop = True
-#         # print("Progress.end()")
-#     def run(self):
-#         parent = self.parent
-#         self.stop = False
-#
-#         i = 0
-#
-#         while not self.stop:
-#
-#             i += 1
-#             time.sleep(0.1)
-#
-#             self.parent.update_progress(i)
-#
-#             if i > 100:
-#                 self.start_time = parent.time()
-#
-#         self.end_signal.emit()
-#
-
-
 class Bash(QThread):
     strt = Signal()
     ret = Signal(object)
@@ -117,6 +83,7 @@ class Update(QThread):
         self.parent.ui.update_tree.setEnabled(True)
         print("update ended")
 
+
 class UpdateProgress(QThread):
     # in_progress = Signal()
     ended = Signal()
@@ -141,6 +108,7 @@ class UpdateProgress(QThread):
             # self.in_progress.emit()
 
         self.ended.emit()
+
 
 class Folder(QStandardItem):
 
