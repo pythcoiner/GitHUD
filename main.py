@@ -4,8 +4,11 @@ import subprocess
 import logging
 import time
 import shutil
+<<<<<<< HEAD
 
 import re
+=======
+>>>>>>> 46098289cac36357c5a7bb34fe2632d526f007fa
 
 from yaml import load, Loader
 
@@ -23,6 +26,7 @@ logging.basicConfig(format=FORMAT)
 log = logging.getLogger()
 log.setLevel(35)
 
+<<<<<<< HEAD
 
 # class Progress(QThread):
 #
@@ -56,6 +60,42 @@ log.setLevel(35)
 #
 #         self.end_signal.emit()
 #
+=======
+
+class Progress(QThread):
+
+    def __init__(self,parent):
+        QThread.__init__(self)
+        self.parent = parent
+        self.stop = False
+
+    def __del__(self):
+        self.wait()
+
+    def end(self):
+        self.stop = True
+        # print("Progress.end()")
+    def run(self):
+
+        self.parent.ui.progress.setVisible(True)
+
+        self.stop = False
+        i = 0
+        char = ''
+
+        while not self.stop:
+
+
+            time.sleep(0.1)
+            self.parent.ui.progress.setValue(i)
+
+            i += 1
+
+            if i >100:
+                i = 0
+
+        self.parent.ui.progress.setVisible(False)
+>>>>>>> 46098289cac36357c5a7bb34fe2632d526f007fa
 
 
 class Bash(QThread):
@@ -72,17 +112,30 @@ class Bash(QThread):
         self.wait()
 
     def run(self):
+<<<<<<< HEAD
         print("Bash.run()")
         self.strt.emit()
         self.is_running = True
         # self.parent.disable_buttons()
         # self.parent.start_progress()
+=======
+        # print("Bash.run()")
+        # self.strt.emit()
+        self.is_running = True
+        self.parent.disable_buttons()
+        self.parent.progress.start()
+>>>>>>> 46098289cac36357c5a7bb34fe2632d526f007fa
         ret = subprocess.run(self.cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
         self.ret.emit(ret)
         self.is_running = False
+<<<<<<< HEAD
         # self.parent.enable_buttons()
         print("Bash.run() ended!")
+=======
+        self.parent.enable_buttons()
+        # print("Bash.run() ended!")
+>>>>>>> 46098289cac36357c5a7bb34fe2632d526f007fa
 
 
 class Update(QThread):
@@ -304,6 +357,16 @@ class GitHUD(QWidget):
         self.config = load(self.config_file, Loader)
         self.directory_paths = self.config['path']
 
+<<<<<<< HEAD
+=======
+        self.os = sys.platform
+        if self.os == 'linux':
+            self.slash = "/"
+        elif self.os == 'windows':
+            self.slash = "\\"
+        # print(f'platform = {self.os}')
+
+>>>>>>> 46098289cac36357c5a7bb34fe2632d526f007fa
         self.ui = None
         self.build_gui()
         self.tree = self.ui.tree
@@ -481,6 +544,28 @@ class GitHUD(QWidget):
 
     def enable_buttons(self):
         print("enable_buttons")
+        self.ui.b_commit.setEnabled(True)
+        self.ui.b_commit_push.setEnabled(True)
+        self.ui.b_delete.setEnabled(True)
+        self.ui.b_ignore.setEnabled(True)
+        self.ui.b_merge.setEnabled(True)
+        self.ui.b_pull.setEnabled(True)
+        self.ui.b_push.setEnabled(True)
+        self.ui.b_update.setEnabled(True)
+
+    def disable_buttons(self):
+        # print("disable_buttons()")
+        self.ui.b_commit.setEnabled(False)
+        self.ui.b_commit_push.setEnabled(False)
+        self.ui.b_delete.setEnabled(False)
+        self.ui.b_ignore.setEnabled(False)
+        self.ui.b_merge.setEnabled(False)
+        self.ui.b_pull.setEnabled(False)
+        self.ui.b_push.setEnabled(False)
+        self.ui.b_update.setEnabled(False)
+
+    def enable_buttons(self):
+        # print("enable_buttons")
         self.ui.b_commit.setEnabled(True)
         self.ui.b_commit_push.setEnabled(True)
         self.ui.b_delete.setEnabled(True)
