@@ -376,6 +376,7 @@ class GitHUD(QWidget):
 
         self.disable_buttons()
 
+
     def start_progress(self):
         self.ui.progress.setVisible(True)
         self.in_progress.emit()
