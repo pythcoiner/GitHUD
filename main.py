@@ -12,7 +12,7 @@ from yaml import load, Loader
 from pathlib import Path
 
 from PySide2.QtWidgets import QApplication, QWidget, QLabel, QTableWidgetItem, QPushButton, QStyle, QMainWindow, QTreeWidget, QTreeWidgetItem, QHBoxLayout
-from PySide2.QtCore import QFile, QThread, Signal, Qt
+from PySide2.QtCore import QFile, QThread, Signal, Qt, QTimer
 from PySide2 import QtCore
 from PySide2.QtGui import QIcon, QPixmap, QPalette, QColor, QClipboard, QGuiApplication, QPainter, QStandardItem, QStandardItemModel
 from PySide2.QtUiTools import QUiLoader
@@ -46,8 +46,8 @@ class Progress(QThread):
 
         while not self.stop:
             # print(i)
-
-            time.sleep(0.2)
+            QThread.sleep(0.2)
+            # time.sleep(0.2)
             self.parent.ui.progress.setValue(i)
 
             i += 1
