@@ -480,23 +480,24 @@ class GitHUD(QWidget):
         path1 = repo.os_path + self.slash + '.git'+ self.slash + 'refs' + self.slash + 'heads' + self.slash + 'master'
         path2 = repo.os_path + self.slash + '.git'+ self.slash + 'refs' + self.slash + 'remotes' + self.slash + 'origin' + self.slash + 'master'
 
-        # print(f'{path1}, {path2}')
         if os.path.exists(path1) and os.path.exists(path2):
-            # print("exist")
+
             f = open(path1, 'r')
             data1 = f.readlines()
             f.close()
 
-            f = open(path1, 'r')
+            f = open(path2, 'r')
             data2 = f.readlines()
             f.close()
 
-
-            print(data1)
-            print(data2)
-
             if data1 != data2:
+
                 print(f'repo {repo.name} need to be updated! ---------------------------------------')
+                print(data1)
+                print(data2)
+                repo.set_need_push(True)
+            else:
+                repo.set_need_push(False)
 
     def on_repo_selected(self, index):
         # print("GitHUD.on_repo_selected()")
