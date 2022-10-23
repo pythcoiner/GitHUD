@@ -389,6 +389,7 @@ class GitHUD(QWidget):
             print(f"update_progress(i={i})")
             self.ui.progress.setValue(i)
             time.sleep(0.05)
+            self.in_progress.emit()
         else:
             print('reset')
             self.ui.progress.setValue(0)
