@@ -220,22 +220,29 @@ class Folder(QStandardItem):
 
     def update_icon(self):
 
+        update = os.fspath(Path(__file__).resolve().parent / "icon/arrow-circle-315.png")
+        error = os.fspath(Path(__file__).resolve().parent / "icon/exclamation-red.png")
+        download = os.fspath(Path(__file__).resolve().parent / "icon/drive-download.png")
+        upload = os.fspath(Path(__file__).resolve().parent / "icon/drive-upload.png")
+        drive = os.fspath(Path(__file__).resolve().parent / "icon/drive.png")
+        folder = os.fspath(Path(__file__).resolve().parent / 'icon/folder-horizontal.png')
+
         if not self.status_checked:
-            self.setIcon(QIcon("icon/arrow-circle-315.png"))
+            self.setIcon(QIcon(update))
         elif self.status_error:
-            self.setIcon(QIcon("icon/exclamation-red.png"))
+            self.setIcon(QIcon(error))
         elif self.is_repo:
             if self.need_pull:
-                self.setIcon(QIcon("icon/drive-download.png"))
+                self.setIcon(QIcon(download))
             elif self.need_push:
-                self.setIcon(QIcon("icon/drive-upload.png"))
+                self.setIcon(QIcon(upload))
             else:
-                self.setIcon(QIcon("icon/drive.png"))
+                self.setIcon(QIcon(drive))
         else:
             if self.parent is None:
-                self.setIcon(QIcon('icon/drive.png'))
+                self.setIcon(QIcon(drive))
             else:
-                self.setIcon(QIcon('icon/folder-horizontal.png'))
+                self.setIcon(QIcon(folder))
 
 
 class GitHUD(QWidget):
@@ -248,6 +255,7 @@ class GitHUD(QWidget):
         # linux shortcut
         if self.os == 'linux':
             path = os.fspath(Path(__file__).resolve().parent / "githud.desktop")
+
 
             if not os.path.exists(path):
                 f = open(path,'w')
@@ -328,12 +336,17 @@ class GitHUD(QWidget):
         self.ui.b_update.clicked.connect(self.on_update)
         self.ui.b_delete.clicked.connect(self.on_delete_branch)
 
-        self.ui.b_delete.setIcon(QIcon("icon/cross-button.png"))
-        self.ui.b_update.setIcon(QIcon("icon/arrow-circle-315.png"))
-        self.ui.update_tree.setIcon(QIcon("icon/arrow-circle-315.png"))
+        self.b_delete = os.fspath(Path(__file__).resolve().parent / "icon/cross-button.png")
+        self.b_update = os.fspath(Path(__file__).resolve().parent / "icon/arrow-circle-315.png")
+        self.b_pull = os.fspath(Path(__file__).resolve().parent / "icon/arrow-skip-270.png")
+        self.b_push = os.fspath(Path(__file__).resolve().parent / "icon/arrow-skip-090.png")
 
-        self.ui.b_pull.setIcon(QIcon("icon/arrow-skip-270.png"))
-        self.ui.b_push.setIcon(QIcon("icon/arrow-skip-090.png"))
+        self.ui.b_delete.setIcon(QIcon(self.b_delete))
+        self.ui.b_update.setIcon(QIcon(self.b_update))
+        self.ui.update_tree.setIcon(QIcon(self.b_update))
+
+        self.ui.b_pull.setIcon(QIcon(self.b_pull))
+        self.ui.b_push.setIcon(QIcon(self.b_push))
 
         self.root = None
         self.model = QStandardItemModel(self.ui.folder_tree)
