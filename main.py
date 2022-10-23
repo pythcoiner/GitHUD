@@ -396,6 +396,7 @@ class GitHUD(QWidget):
             print('reset')
             self.ui.progress.setValue(0)
             self.ui.progress.setVisible(False)
+            time.sleep(0.1)
             self.enable_buttons()
 
 
