@@ -31,6 +31,7 @@ class Progress(QThread):
         QThread.__init__(self)
         self.parent = parent
         self.stop = False
+        self.start_time = None
 
     def __del__(self):
         self.wait()
@@ -42,18 +43,17 @@ class Progress(QThread):
 
         self.parent.ui.progress.setVisible(True)
         self.stop = False
-        i = 0
+        self.start_time = time.time()
+        # i = 0
 
         while not self.stop:
             # print(i)
-            QThread.sleep(0.2)
-            # time.sleep(0.2)
+            i = round(self.start_time - time.time())
+
             self.parent.ui.progress.setValue(i)
 
-            i += 1
-
-            if i >100:
-                i = 0
+            if i > 100:
+                self.start_time = time.time()
         self.parent.ui.progress.setValue(0)
         self.parent.ui.progress.setVisible(False)
 
@@ -368,6 +368,7 @@ class GitHUD(QWidget):
 
         self.progress = Progress(self)
         self.disable_buttons()
+
 
     def iter_items(self, root):
         if root is not None:
