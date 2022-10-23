@@ -87,7 +87,6 @@ class Bash(QThread):
         print("Bash.run() ended!")
 
 
-
 class Update(QThread):
 
     def __init__(self, parent):
@@ -474,10 +473,10 @@ class GitHUD(QWidget):
                 elif i[-1] == 'origin/master' and i[1] == '=' :
                     repo.set_need_pull(False)
 
-        self.check_pull_status(repo)
+        self.check_push_status(repo)
 
-    def check_pull_status(self, repo):
-        print(f"check_pull_status()")
+    def check_push_status(self, repo):
+        print(f"check_push_status()")
         path1 = repo.os_path + self.slash + '.git'+ self.slash + 'refs' + self.slash + 'heads' + self.slash + 'master'
         path2 = repo.os_path + self.slash + '.git'+ self.slash + 'refs' + self.slash + 'remotes' + self.slash + 'origin' + self.slash + 'master'
 
