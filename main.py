@@ -60,8 +60,8 @@ log.setLevel(35)
 
 class Bash(QThread):
     strt = Signal()
-    # end = Signal()
     ret = Signal(object)
+
     def __init__(self, parent):
         QThread.__init__(self)
         self.parent = parent
@@ -72,7 +72,7 @@ class Bash(QThread):
         self.wait()
 
     def run(self):
-        # print("Bash.run()")
+        print("Bash.run()")
         self.strt.emit()
         self.is_running = True
         self.parent.disable_buttons()
@@ -82,7 +82,7 @@ class Bash(QThread):
         self.ret.emit(ret)
         self.is_running = False
         self.parent.enable_buttons()
-        # print("Bash.run() ended!")
+        print("Bash.run() ended!")
 
 
 class Update(QThread):
@@ -381,9 +381,11 @@ class GitHUD(QWidget):
         self.in_progress.emit()
 
     def update_progress(self):
+
         if self.bash.is_running:
             i = self.ui.progress.value()
-            i += 1
+            i += 5
+            print(f"update_progress(i={i})")
             self.ui.progress.setValue(i)
             time.sleep(0.1)
         else:
