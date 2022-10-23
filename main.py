@@ -359,6 +359,7 @@ class GitHUD(QWidget):
         self.ui.b_update.clicked.connect(self.on_update)
         self.ui.b_delete.clicked.connect(self.on_delete_branch)
 
+
         self.b_delete = os.fspath(Path(__file__).resolve().parent / "icon/cross-button.png")
         self.b_update = os.fspath(Path(__file__).resolve().parent / "icon/arrow-circle-315.png")
         self.b_pull = os.fspath(Path(__file__).resolve().parent / "icon/arrow-skip-270.png")
