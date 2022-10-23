@@ -491,6 +491,7 @@ class GitHUD(QWidget):
             data2 = f.readlines()
             f.close()
 
+
             print(data1)
             print(data2)
 
