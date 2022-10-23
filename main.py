@@ -408,7 +408,6 @@ class GitHUD(QWidget):
         self.ui.progress.setVisible(False)
         self.enable_buttons()
 
-
     def iter_items(self, root):
         if root is not None:
             stack = [root]
