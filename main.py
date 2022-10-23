@@ -75,13 +75,13 @@ class Bash(QThread):
         print("Bash.run()")
         self.strt.emit()
         self.is_running = True
-        self.parent.disable_buttons()
-        self.parent.start_progress()
+        # self.parent.disable_buttons()
+        # self.parent.start_progress()
         ret = subprocess.run(self.cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
         self.ret.emit(ret)
         self.is_running = False
-        self.parent.enable_buttons()
+        # self.parent.enable_buttons()
         print("Bash.run() ended!")
 
 
@@ -379,7 +379,7 @@ class GitHUD(QWidget):
     def start_progress(self):
         self.ui.progress.setVisible(True)
         self.in_progress.emit()
-
+        self.disable_buttons()
 
     def update_progress(self):
 
@@ -396,6 +396,7 @@ class GitHUD(QWidget):
             # print('reset')
             self.ui.progress.setValue(0)
             self.ui.progress.setVisible(False)
+            self.enable_buttons()
 
 
     def iter_items(self, root):
@@ -910,6 +911,7 @@ class GitHUD(QWidget):
                 self.bash_action = 'do_pull'
                 self.bash.cmd = cmd
                 self.bash.start()
+                self.start_progress()
 
             else:
                 txt = f'commit or delete before pull!'
@@ -940,6 +942,7 @@ class GitHUD(QWidget):
             self.bash_action = 'do_push'
             self.bash.cmd = cmd
             self.bash.start()
+            self.start_progress()
         # ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
     def ret_push(self, ret):
