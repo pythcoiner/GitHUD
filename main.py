@@ -410,10 +410,10 @@ class GitHUD(QWidget):
         self.status_update.start()
 
     def check_repo_status(self, repo):
-        # print(f"check_repo_status({repo.name})")
+        print(f"check_repo_status({repo.name})--------------------------------")
         cmd = f'cd {repo.os_path} {self.bash_2_and} git fetch -v --dry-run'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        # print(ret.stderr)
+        print(ret.stderr)
         ret = ret.stderr.splitlines()
         repo.status_checked = True
         if ret == []:
