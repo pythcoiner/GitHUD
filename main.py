@@ -390,7 +390,8 @@ class GitHUD(QWidget):
             self.ui.progress.setValue(i)
             time.sleep(0.1)
         else:
-            self.end_progress()
+            self.ui.progress.setValue(0)
+            self.ui.progress.setVisible(False)
 
     def end_progress(self):
         self.ui.progress.setValue(0)
