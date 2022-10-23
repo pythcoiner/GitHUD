@@ -129,6 +129,7 @@ class UpdateProgress(QThread):
         self.wait()
 
     def run(self):
+        i = 0
         while self.parent.bash.is_running:
             # i = self.parent.ui.progress.value()
             i += 5
