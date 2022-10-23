@@ -118,7 +118,7 @@ class Update(QThread):
         print("update ended")
 
 class UpdateProgress(QThread):
-    in_progress = Signal()
+    # in_progress = Signal()
     ended = Signal()
 
     def __init__(self, parent):
@@ -129,18 +129,17 @@ class UpdateProgress(QThread):
         self.wait()
 
     def run(self):
-        if self.parent.bash.is_running:
+        while self.parent.bash.is_running:
             i = self.parent.ui.progress.value()
-            i += 2
+            i += 5
             if i > 100:
                 i = 0
             print(f"update_progress(i={i})")
             self.parent.ui.progress.setValue(i)
-            time.sleep(0.03)
-            self.in_progress.emit()
-        else:
-            self.ended.emit()
+            time.sleep(0.1)
+            # self.in_progress.emit()
 
+        self.ended.emit()
 
 class Folder(QStandardItem):
 
@@ -389,7 +388,7 @@ class GitHUD(QWidget):
 
         self.progress = UpdateProgress(self)
 
-        self.progress.in_progress.connect(self.progress.start)
+        # self.progress.in_progress.connect(self.progress.start)
         self.progress.ended.connect(self.end_progress)
 
         self.status_update = Update(self)
