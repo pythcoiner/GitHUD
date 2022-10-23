@@ -24,45 +24,43 @@ log = logging.getLogger()
 log.setLevel(35)
 
 
-class Progress(QThread):
-    end_signal = Signal()
-    update_signal = Signal(int)
-    def __init__(self,parent):
-        QThread.__init__(self)
-        self.parent = parent
-        self.stop = False
-        self.start_time = None
-
-    def __del__(self):
-        self.wait()
-
-    def end(self):
-        self.stop = True
-        # print("Progress.end()")
-    def run(self):
-        parent = self.parent
-
-
-        self.stop = False
-        self.start_time = parent.time()
-        i = 0
-
-        while not self.stop:
-            # print(i)
-            i = round((parent.time() - self.start_time)*20)
-            # print(i)
-            self.parent.update_progress(i)
-
-            if i > 100:
-                self.start_time = parent.time()
-
-        self.end_signal.emit()
-
+# class Progress(QThread):
+#
+#     def __init__(self,parent):
+#         QThread.__init__(self)
+#         self.parent = parent
+#         self.stop = False
+#         self.start_time = None
+#
+#     def __del__(self):
+#         self.wait()
+#
+#     def end(self):
+#         self.stop = True
+#         # print("Progress.end()")
+#     def run(self):
+#         parent = self.parent
+#         self.stop = False
+#
+#         i = 0
+#
+#         while not self.stop:
+#
+#             i += 1
+#             time.sleep(0.1)
+#
+#             self.parent.update_progress(i)
+#
+#             if i > 100:
+#                 self.start_time = parent.time()
+#
+#         self.end_signal.emit()
+#
 
 
 class Bash(QThread):
-    # strt = Signal()
-    end = Signal()
+    strt = Signal()
+    # end = Signal()
     ret = Signal(object)
     def __init__(self, parent):
         QThread.__init__(self)
@@ -75,7 +73,7 @@ class Bash(QThread):
 
     def run(self):
         # print("Bash.run()")
-        # self.strt.emit()
+        self.strt.emit()
         self.is_running = True
         self.parent.disable_buttons()
         self.parent.start_progress()
@@ -249,6 +247,7 @@ class Folder(QStandardItem):
 
 class GitHUD(QWidget):
 
+    in_progress = Signal()
     def __init__(self):
         QWidget.__init__(self)
 
@@ -362,29 +361,35 @@ class GitHUD(QWidget):
         self.ui.progress.setVisible(False)
 
         self.bash = Bash(self)
+        self.bash.strt.connect(self.start_progress)
         self.bash.ret.connect(self.bash_ret)
         self.bash_action = None
+
+        self.in_progress.connect(self.update_progress)
 
         self.status_update = Update(self)
 
         self.updates_repo_status()
 
-        self.progress = Progress(self)
-
-        self.progress.update_signal.connect(self.update_progress)
-        self.progress.end_signal.connect(self.end_progress)
+        # self.progress = Progress(self)
+        #
+        # self.progress.update_signal.connect(self.update_progress)
+        # self.progress.end_signal.connect(self.end_progress)
 
         self.disable_buttons()
 
-    def time(self):
-        return time.time()
-
     def start_progress(self):
         self.ui.progress.setVisible(True)
-        self.progress.start()
+        self.in_progress.emit()
 
-    def update_progress(self,i):
-        self.ui.progress.setValue(i)
+    def update_progress(self):
+        if self.bash.is_running:
+            i = self.ui.progress.value
+            i += 1
+            self.ui.progress.setValue(i)
+            time.sleep(0.1)
+        else:
+            self.end_progress()
 
     def end_progress(self):
         self.ui.progress.setValue(0)
