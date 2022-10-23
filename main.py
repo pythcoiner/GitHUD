@@ -1044,9 +1044,16 @@ class GitHUD(QWidget):
         # print(remotes)
         self.remotes = remotes
 
-    def check_changes(self):
+    def check_changes(self,path=None):
         # print("check_changes()")
-        cmd = f'cd {self.path} {self.bash_2_and} git ls-files -m -d -o --exclude-standard'
+
+        if path is None:
+            path = self.path
+            update = True
+        else:
+            update = False
+
+        cmd = f'cd {path} {self.bash_2_and} git ls-files -m -d -o --exclude-standard'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=False, text=True)
 
         changes = ret.stdout.split('\n')
@@ -1101,23 +1108,33 @@ class GitHUD(QWidget):
                 out.append(i)
 
         out = list(set(out))
-        self.change_list = out
+        if update:
+            self.change_list = out
 
-        self.check_cached_changes()
+            self.check_cached_changes()
 
-        self.update_changes()
-        # print("--------------")
+            self.update_changes()
+        else:
+            return out
 
-    def check_cached_changes(self):
-        cmd = f'cd {self.path} {self.bash_2_and} git diff --name-only --cached'
+    def check_cached_changes(self, path=None):
+        if path is None:
+            path = self.path
+            update = True
+        else:
+            update = False
+
+        cmd = f'cd {path} {self.bash_2_and} git diff --name-only --cached'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=False, text=True)
         changes = ret.stdout.split('\n')
         out = []
         for i in changes:
             if i != '':
                 out.append(i)
-        # print(out)
-        self.cached_change_list = out
+        if update:
+            self.cached_change_list = out
+        else:
+            return out
 
     def process_branches(self):
         # print('process_branches()')
