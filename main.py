@@ -40,20 +40,21 @@ class Progress(QThread):
         self.stop = True
         # print("Progress.end()")
     def run(self):
+        parent = self.parent
 
         self.parent.ui.progress.setVisible(True)
         self.stop = False
-        self.start_time = time.time()
+        self.start_time = parent.time()
         i = 0
 
         while not self.stop:
             # print(i)
-            i = round((time.time() - self.start_time)*20)
+            i = round((parent.time() - self.start_time)*20)
             # print(i)
             self.parent.ui.progress.setValue(i)
 
             if i > 100:
-                self.start_time = time.time()
+                self.start_time = parent.time()
         self.parent.ui.progress.setValue(0)
         self.parent.ui.progress.setVisible(False)
 
@@ -369,6 +370,8 @@ class GitHUD(QWidget):
         self.progress = Progress(self)
         self.disable_buttons()
 
+    def time(self):
+        return time.time()
 
     def iter_items(self, root):
         if root is not None:
