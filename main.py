@@ -388,16 +388,13 @@ class GitHUD(QWidget):
             i += 5
             print(f"update_progress(i={i})")
             self.ui.progress.setValue(i)
-            time.sleep(0.05)
+            time.sleep(0.1)
             self.in_progress.emit()
         else:
-            print('reset')
+            # print('reset')
             self.ui.progress.setValue(0)
             self.ui.progress.setVisible(False)
 
-    def end_progress(self):
-        self.ui.progress.setValue(0)
-        self.ui.progress.setVisible(False)
 
     def iter_items(self, root):
         if root is not None:
