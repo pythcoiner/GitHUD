@@ -367,6 +367,8 @@ class GitHUD(QWidget):
 
         self.status_update = Update(self)
 
+        self.disable_buttons()
+
         self.updates_repo_status()
 
         # self.progress = Progress(self)
@@ -374,7 +376,7 @@ class GitHUD(QWidget):
         # self.progress.update_signal.connect(self.update_progress)
         # self.progress.end_signal.connect(self.end_progress)
 
-        self.disable_buttons()
+
 
     def start_progress(self):
         self.ui.progress.setVisible(True)
