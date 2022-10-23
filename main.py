@@ -24,9 +24,9 @@ log = logging.getLogger()
 log.setLevel(35)
 
 
-
 class Progress(QThread):
-
+    end_signal = Signal()
+    update_signal = Signal(int)
     def __init__(self,parent):
         QThread.__init__(self)
         self.parent = parent
@@ -42,7 +42,7 @@ class Progress(QThread):
     def run(self):
         parent = self.parent
 
-        self.parent.ui.progress.setVisible(True)
+
         self.stop = False
         self.start_time = parent.time()
         i = 0
@@ -51,12 +51,13 @@ class Progress(QThread):
             # print(i)
             i = round((parent.time() - self.start_time)*20)
             # print(i)
-            self.parent.ui.progress.setValue(i)
+            self.parent.update_progress(i)
 
             if i > 100:
                 self.start_time = parent.time()
-        self.parent.ui.progress.setValue(0)
-        self.parent.ui.progress.setVisible(False)
+
+        self.end_signal.emit()
+
 
 
 class Bash(QThread):
@@ -77,7 +78,7 @@ class Bash(QThread):
         # self.strt.emit()
         self.is_running = True
         self.parent.disable_buttons()
-        self.parent.progress.start()
+        self.parent.start_progress()
         ret = subprocess.run(self.cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         self.parent.progress.end()
 
@@ -328,6 +329,7 @@ class GitHUD(QWidget):
 
         self.ui.update_tree.clicked.connect(self.updates_repo_status)
 
+
         self.ui.b_pull.clicked.connect(self.on_pull)
         self.ui.b_push.clicked.connect(self.on_push)
         self.ui.b_commit.clicked.connect(self.on_commit)
@@ -368,10 +370,25 @@ class GitHUD(QWidget):
         self.updates_repo_status()
 
         self.progress = Progress(self)
+
+        self.progress.update_signal.connect(self.update_progress)
+        self.progress.end_signal.connect(self.end_progress)
+
         self.disable_buttons()
 
     def time(self):
         return time.time()
+
+    def start_progress(self):
+        self.ui.progress.setVisible(True)
+        self.progress.start()
+
+    def update_progress(self,i):
+        self.ui.progress.setValue(i)
+
+    def end_progress(self):
+        self.ui.progress.setValue(0)
+        self.ui.progress.setVisible(False)
 
     def iter_items(self, root):
         if root is not None:
