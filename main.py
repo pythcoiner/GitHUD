@@ -17,6 +17,7 @@ from PySide2.QtGui import QIcon, QPixmap, QPalette, QColor, QClipboard, QGuiAppl
 from PySide2.QtUiTools import QUiLoader
 
 
+
 FORMAT = '%(message)s'
 logging.basicConfig(format=FORMAT)
 log = logging.getLogger()
@@ -92,6 +93,7 @@ class Update(QThread):
     def __init__(self, parent):
         QThread.__init__(self)
         self.parent = parent
+        self.is_running = False
 
     def __del__(self):
         self.wait()
@@ -99,6 +101,7 @@ class Update(QThread):
     def run(self):
         print("start updating repositories status")
         self.parent.ui.update_tree.setEnabled(False)
+        self.is_running = True
         items = self.parent.list_items()
 
         buff = []
@@ -117,6 +120,31 @@ class Update(QThread):
                 if i.is_repo:
                     self.parent.check_repo_status(i)
         self.parent.ui.update_tree.setEnabled(True)
+        self.is_running = False
+        print("update ended")
+
+
+class UpdateSingle(QThread):
+
+    def __init__(self, parent):
+        QThread.__init__(self)
+        self.parent = parent
+        self.path = None
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        print(f"start updating single status:{self.path}")
+        path = self.path
+        items = self.parent.list_items()
+
+        for i in items:
+            if i.os_path == path:
+                self.parent.check_repo_status(i)
+                break
+
+        self.path = None
         print("update ended")
 
 
@@ -141,6 +169,24 @@ class UpdateProgress(QThread):
             time.sleep(0.1)
             self.update_progress.emit(i)
 
+
+        self.ended.emit()
+
+
+class Spin(QThread):
+
+    ended = Signal()
+
+    def __init__(self, parent, time):
+        QThread.__init__(self)
+        self.parent = parent
+        self.time = time
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        time.sleep(self.time)
 
         self.ended.emit()
 
@@ -172,6 +218,7 @@ class Folder(QStandardItem):
         self.is_repo = False
         self.need_pull = False
         self.need_push = False
+        self.need_commit = False
         self.status_error = False
         self.status_checked = True
 
@@ -239,6 +286,10 @@ class Folder(QStandardItem):
         self.need_push = push
         self.update_icon()
 
+    def set_need_commit(self, commit):
+        self.need_commit = commit
+        self.update_icon()
+
     def set_error(self, error):
         self.status_error = error
         self.update_icon()
@@ -250,7 +301,9 @@ class Folder(QStandardItem):
         download = os.fspath(Path(__file__).resolve().parent / "icon/drive-download.png")
         upload = os.fspath(Path(__file__).resolve().parent / "icon/drive-upload.png")
         drive = os.fspath(Path(__file__).resolve().parent / "icon/drive.png")
+        file = os.fspath(Path(__file__).resolve().parent / "icon/document.png")
         folder = os.fspath(Path(__file__).resolve().parent / 'icon/folder-horizontal.png')
+        save = os.fspath(Path(__file__).resolve().parent / 'icon/disk--plus.png')
 
         if not self.status_checked:
             self.setIcon(QIcon(update))
@@ -261,8 +314,10 @@ class Folder(QStandardItem):
                 self.setIcon(QIcon(download))
             elif self.need_push:
                 self.setIcon(QIcon(upload))
+            elif self.need_commit:
+                self.setIcon(QIcon(save))
             else:
-                self.setIcon(QIcon(drive))
+                self.setIcon(QIcon(file))
         else:
             if self.parent is None:
                 self.setIcon(QIcon(drive))
@@ -270,12 +325,13 @@ class Folder(QStandardItem):
                 self.setIcon(QIcon(folder))
 
 
-class GitHUD(QWidget):
+class GitHUD(QMainWindow):
 
     in_progress = Signal()
-    def __init__(self):
-        QWidget.__init__(self)
+    update_single_status = Signal()
 
+    def __init__(self):
+        QMainWindow.__init__(self)
         self.os = sys.platform
 
         # linux shortcut
@@ -312,10 +368,12 @@ class GitHUD(QWidget):
             self.slash = "/"
         elif self.os == 'windows':
             self.slash = "\\"
-        # print(f'platform = {self.os}')
 
         self.ui = None
         self.build_gui()
+        self.ui.setParent(self)
+        self.setFixedSize(self.ui.size())
+
         self.tree = self.ui.tree
         self.tree_list = []
 
@@ -339,6 +397,8 @@ class GitHUD(QWidget):
         self.local_branches = []
         self.remotes = {}
         self.selected_branch = None
+
+        self.button_enabled = False
 
         self.project = None
         self.section = None
@@ -368,16 +428,51 @@ class GitHUD(QWidget):
         self.ui.b_merge.clicked.connect(self.on_merge)
         self.ui.b_update.clicked.connect(self.on_update)
         self.ui.b_delete.clicked.connect(self.on_delete_branch)
+        self.ui.b_reset.clicked.connect(self.do_reset)
+        self.ui.b_clean.clicked.connect(self.do_restore)
+        self.ui.b_delete_file.clicked.connect(self.on_delete_file)
+
+        self.ui.b_pull.setParent(self)
+        self.ui.b_push.setParent(self)
+        self.ui.b_commit.setParent(self)
+        self.ui.b_commit_push.setParent(self)
+        self.ui.b_ignore.setParent(self)
+        self.ui.b_merge.setParent(self)
+        self.ui.b_update.setParent(self)
+        self.ui.update_tree.setParent(self)
+        self.ui.b_delete.setParent(self)
+        self.ui.b_reset.setParent(self)
+        self.ui.b_clean.setParent(self)
+        self.ui.b_delete_file.setParent(self)
+
+        self.ui.b_pull.setToolTip("Git pull from origin")
+        self.ui.b_push.setToolTip("Git push to origin")
+        self.ui.b_commit.setToolTip("Add & Commit file to branch")
+        self.ui.b_commit_push.setToolTip("Add & Commit file to branch + Push to origin")
+        self.ui.b_ignore.setToolTip("Add this file to .gitignore file")
+        self.ui.b_merge.setToolTip("Merge selected branch into current branch")
+        self.ui.b_update.setToolTip("Update changes")
+        self.ui.update_tree.setToolTip("Update repositories status")
+        self.ui.b_delete.setToolTip("Delete current branch (Press ctrl key for unlock)")
+        self.ui.b_reset.setToolTip("Git reset (cancel staged changes)")
+        self.ui.b_clean.setToolTip("Git restore . (restore files to last commit state (Press ctrl key for unlock))")
+        self.ui.b_delete_file.setToolTip("Delete selected file (Press ctrl key for unlock)")
 
 
         self.b_delete = os.fspath(Path(__file__).resolve().parent / "icon/cross-button.png")
         self.b_update = os.fspath(Path(__file__).resolve().parent / "icon/arrow-circle-315.png")
         self.b_pull = os.fspath(Path(__file__).resolve().parent / "icon/arrow-skip-270.png")
         self.b_push = os.fspath(Path(__file__).resolve().parent / "icon/arrow-skip-090.png")
+        self.b_reset = os.fspath(Path(__file__).resolve().parent / "icon/disk--minus.png")
+        self.b_clean = os.fspath(Path(__file__).resolve().parent / "icon/arrow-curve-180-left.png")
+        self.b_delete_file = os.fspath(Path(__file__).resolve().parent / "icon/cross.png")
 
         self.ui.b_delete.setIcon(QIcon(self.b_delete))
         self.ui.b_update.setIcon(QIcon(self.b_update))
         self.ui.update_tree.setIcon(QIcon(self.b_update))
+        self.ui.b_reset.setIcon(QIcon(self.b_reset))
+        self.ui.b_clean.setIcon(QIcon(self.b_clean))
+        self.ui.b_delete_file.setIcon(QIcon(self.b_delete_file))
 
         self.ui.b_pull.setIcon(QIcon(self.b_pull))
         self.ui.b_push.setIcon(QIcon(self.b_push))
@@ -404,9 +499,63 @@ class GitHUD(QWidget):
 
         self.status_update = Update(self)
 
+        self.single_status = UpdateSingle(self)
+        self.update_single_status.connect(self.single_status.start)
+
         self.disable_buttons()
+        self.lock_buttons()
+
+        self.spin = Spin(self,0.2)
+        self.spin.ended.connect(self.update_spin)
+        self.spin_state = 1
+
+        self.changes_update_timer = Spin(self, 2)
+        self.changes_update_timer.ended.connect(self.auto_update_changes)
+
+        self.repo_selected = False
+
+        # disable until hadle for keep the check info
+        # self.auto_update_changes()
 
         self.updates_repo_status()
+
+        self.status_update_timer = Spin(self, 300)
+        self.status_update_timer.ended.connect(self.auto_update_status)
+        self.status_update_timer.start()
+
+
+    def keyPressEvent(self, event):
+        print(event.key())
+        if event.key() == Qt.Key_Control and self.button_enabled:
+            self.unlock_buttons()
+
+    def keyReleaseEvent(self, event):
+        if event.key() == Qt.Key_Control:
+            self.lock_buttons()
+
+    def auto_update_changes(self):
+        # print("auto_update_change")
+        if self.repo_selected:
+            self.check_changes()
+        self.changes_update_timer.start()
+
+    def auto_update_status(self):
+        print("auto_update_status")
+        self.updates_repo_status()
+        self.changes_update_timer.start()
+
+    def update_spin(self):
+        if self.status_update.is_running:
+            self.spin_state += 1
+            if self.spin_state > 4:
+                self.spin_state = 1
+            path = f"icon/spin/{self.spin_state}.png"
+            path = os.fspath(Path(__file__).resolve().parent / path)
+            self.ui.update_tree.setIcon(QIcon(path))
+            self.spin.start()
+        else:
+            path = os.fspath(Path(__file__).resolve().parent / "icon/spin/1.png")
+            self.ui.update_tree.setIcon(QIcon(path))
 
     def start_progress(self):
         self.disable_buttons()
@@ -453,12 +602,13 @@ class GitHUD(QWidget):
 
     def updates_repo_status(self):
         self.status_update.start()
+        self.spin.start()
 
     def check_repo_status(self, repo):
-        print(f"check_repo_status({repo.name})--------------------------------")
+        # print(f"check_repo_status({repo.name})--------------------------------")
         cmd = f'cd {repo.os_path} {self.bash_2_and} git fetch -v --dry-run'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        print(ret.stderr)
+        # print(ret.stderr)
         ret = ret.stderr.splitlines()
         repo.status_checked = True
         if ret == []:
@@ -474,9 +624,10 @@ class GitHUD(QWidget):
                     repo.set_need_pull(False)
 
         self.check_push_status(repo)
+        self.check_commit_status(repo)
 
     def check_push_status(self, repo):
-        print(f"check_push_status()")
+        # print(f"check_push_status()")
         path1 = repo.os_path + self.slash + '.git'+ self.slash + 'refs' + self.slash + 'heads' + self.slash + 'master'
         path2 = repo.os_path + self.slash + '.git'+ self.slash + 'refs' + self.slash + 'remotes' + self.slash + 'origin' + self.slash + 'master'
 
@@ -492,12 +643,24 @@ class GitHUD(QWidget):
 
             if data1 != data2:
 
-                print(f'repo {repo.name} need to be updated! ---------------------------------------')
-                print(data1)
-                print(data2)
+                # print(f'repo {repo.name} need to be updated! ---------------------------------------')
+                # print(data1)
+                # print(data2)
                 repo.set_need_push(True)
             else:
                 repo.set_need_push(False)
+
+    def check_commit_status(self, repo):
+        changes = self.check_changes(repo.os_path)
+        cached = self.check_cached_changes(repo.os_path)
+        if len(changes) > 0 or len(cached) > 0:
+            repo.set_need_commit(True)
+        else:
+            repo.set_need_commit(False)
+
+    def check_single_status(self, path):
+        self.single_status.path = path
+        self.update_single_status.emit()
 
     def on_repo_selected(self, index):
         # print("GitHUD.on_repo_selected()")
@@ -506,29 +669,41 @@ class GitHUD(QWidget):
         section = self.path.split(self.slash)[-1]
         self.section = [section, self.path]
         self.update_branch()
+        self.repo_selected = True
 
     def disable_buttons(self):
-        print("disable_buttons()")
+        # print("disable_buttons()")
+        self.button_enabled = False
         self.ui.b_commit.setEnabled(False)
         self.ui.b_commit_push.setEnabled(False)
-        self.ui.b_delete.setEnabled(False)
         self.ui.b_ignore.setEnabled(False)
         self.ui.b_merge.setEnabled(False)
         self.ui.b_pull.setEnabled(False)
         self.ui.b_push.setEnabled(False)
         self.ui.b_update.setEnabled(False)
+        self.ui.b_reset.setEnabled(False)
 
     def enable_buttons(self):
-        print("enable_buttons")
+        # print("enable_buttons")
+        self.button_enabled = True
         self.ui.b_commit.setEnabled(True)
         self.ui.b_commit_push.setEnabled(True)
-        self.ui.b_delete.setEnabled(True)
         self.ui.b_ignore.setEnabled(True)
         self.ui.b_merge.setEnabled(True)
         self.ui.b_pull.setEnabled(True)
         self.ui.b_push.setEnabled(True)
         self.ui.b_update.setEnabled(True)
+        self.ui.b_reset.setEnabled(True)
 
+    def lock_buttons(self):
+        self.ui.b_delete.setEnabled(False)
+        self.ui.b_clean.setEnabled(False)
+        self.ui.b_delete_file.setEnabled(False)
+
+    def unlock_buttons(self):
+        self.ui.b_delete.setEnabled(True)
+        self.ui.b_clean.setEnabled(True)
+        self.ui.b_delete_file.setEnabled(True)
 
     def tree_changed(self,item,col):
         if len(self.tree_list) > 0:
@@ -660,6 +835,7 @@ class GitHUD(QWidget):
 
         self.model.appendRow(self.root)
         self.ui.folder_tree.setModel(self.model)
+        self.model.sort(0)
 
         self.expand_all()
 
@@ -827,6 +1003,17 @@ class GitHUD(QWidget):
 
         self.check_changes()
 
+    def on_delete_file(self):
+
+        for i in self.tree_list:
+
+            if (i.checkState(0) == Qt.CheckState.Checked):
+
+                filename = i.text(0)
+                self.do_delete_file(filename)
+
+        self.check_changes()
+
     def on_new_branch(self):
         name = self.ui.msg.text()
         if name == '':
@@ -876,6 +1063,7 @@ class GitHUD(QWidget):
             tooltip = cmd + '\n     ==>    \n' + ret.stderr
             txt = f'merge fail!'
             self.set_label(txt, tooltip)
+            self.check_single_status(self.path)
             return False
         else:
             txt = f'merged successfully'
@@ -883,7 +1071,41 @@ class GitHUD(QWidget):
             self.set_label(txt, tooltip)
             # self.update_section()
             self.update_branch()
+            self.check_single_status(self.path)
+            return True
 
+    def do_restore(self):
+        cmd = f'cd {self.path} {self.bash_2_and} git restore .'
+        ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        if ret.returncode != 0:
+            tooltip = cmd + '\n     ==>    \n' + ret.stderr
+            txt = f'delete fail!'
+            self.set_label(txt, tooltip)
+            self.update_branch()
+            return False
+        else:
+            txt = f'delete successfully'
+            tooltip = cmd + '\n     ==>    \n' + ret.stdout
+            self.set_label(txt, tooltip)
+            self.update_branch()
+            return True
+
+    def do_reset(self):
+        cmd = f'cd {self.path} {self.bash_2_and} git reset'
+        ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        if ret.returncode != 0:
+            tooltip = cmd + '\n     ==>    \n' + ret.stderr
+            txt = f'reset fail!'
+            self.set_label(txt, tooltip)
+            self.update_branch()
+            return False
+        else:
+            txt = f'reset successfully'
+            tooltip = cmd + '\n     ==>    \n' + ret.stdout
+            self.set_label(txt, tooltip)
+            self.update_branch()
             return True
 
     def do_ignore(self,file):
@@ -903,6 +1125,21 @@ class GitHUD(QWidget):
         f.write(file +'\n')
         f.close()
         return True
+
+    def do_delete_file(self, file):
+
+        path = self.path + self.slash + file
+        print([path])
+
+        try:
+            print("a")
+            os.remove(path)
+            print("b")
+            return True
+        except Exception as e:
+            txt = f"cannot remove file!"
+            self.set_label(txt, str(e))
+            return False
 
     def do_add(self,file):
         cmd = f'cd {self.path} {self.bash_2_and} git add {file}'
@@ -931,12 +1168,14 @@ class GitHUD(QWidget):
             tooltip = cmd + '\n     ==>    \n' + ret.stderr
             txt = f'commit fail!'
             self.set_label(txt, tooltip)
+            self.check_single_status(self.path)
             return False
         else:
             txt = f'commit done successfull'
             tooltip = cmd + '\n     ==>    \n' + ret.stdout
             self.set_label(txt, tooltip)
             self.ui.msg.setText('')
+            self.check_single_status(self.path)
             return True
 
     def bash_ret(self, ret):
@@ -982,6 +1221,7 @@ class GitHUD(QWidget):
         self.update_branch(label=False)
         self.bash.cmd = ''
         self.bash_action = None
+        self.check_single_status(self.path)
         self.pull_lock = False
 
     def do_push(self):
@@ -1001,6 +1241,7 @@ class GitHUD(QWidget):
             self.set_label(txt, tooltip)
             self.bash.cmd = ''
             self.bash_action = None
+            self.check_single_status(self.path)
             return False
         else:
             txt = f'push done successfull'
@@ -1008,6 +1249,7 @@ class GitHUD(QWidget):
             self.set_label(txt, tooltip)
             self.bash.cmd = ''
             self.bash_action = None
+            self.check_single_status(self.path)
             return True
 
     def do_add_branch(self,name):
@@ -1117,7 +1359,14 @@ class GitHUD(QWidget):
         self.remotes = remotes
 
     def check_changes(self,path=None):
-        # print("check_changes()")
+        # print(f"check_changes({path})")
+
+        if path is None:
+            name = self.section[0]
+        else:
+            name = path.split(self.slash)[-1]
+
+        # print(name)
 
         if path is None:
             path = self.path
@@ -1159,7 +1408,7 @@ class GitHUD(QWidget):
                 is_lock = True
 
             # hide githud .gitignore file
-            if self.section[0].lower() == 'githud' and i.split("/")[-1] == '.gitignore':
+            if name.lower() == 'githud' and i.split("/")[-1] == '.gitignore':
                 is_lock = True
 
             # hide jetbrains config files (Pycharm, CLion, etc....)
@@ -1186,8 +1435,8 @@ class GitHUD(QWidget):
             self.check_cached_changes()
 
             self.update_changes()
-        else:
-            return out
+
+        return out
 
     def check_cached_changes(self, path=None):
         if path is None:
@@ -1205,8 +1454,7 @@ class GitHUD(QWidget):
                 out.append(i)
         if update:
             self.cached_change_list = out
-        else:
-            return out
+        return out
 
     def process_branches(self):
         # print('process_branches()')
@@ -1258,9 +1506,10 @@ if __name__ == "__main__":
     palette.setColor(QPalette.HighlightedText, Qt.black)
     app.setPalette(palette)
 
-    widget = GitHUD()
-    widget.setWindowTitle('GitHUD')
-    widget.show()
+    window = GitHUD()
+    # window.setParent(app)
+    window.setWindowTitle('GitHUD')
+    window.show()
 
     clipboard = app.clipboard()
 
