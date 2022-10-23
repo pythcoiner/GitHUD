@@ -138,7 +138,7 @@ class UpdateProgress(QThread):
             i += 5
             if i > 100:
                 i = 0
-            print(f"update_progress(i={i})")
+            # print(f"update_progress(i={i})")
             time.sleep(0.1)
             self.update_progress.emit(i)
 
