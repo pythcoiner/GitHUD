@@ -384,7 +384,7 @@ class GitHUD(QWidget):
 
     def update_progress(self):
         if self.bash.is_running:
-            i = self.ui.progress.value
+            i = self.ui.progress.value()
             i += 1
             self.ui.progress.setValue(i)
             time.sleep(0.1)
