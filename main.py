@@ -428,6 +428,30 @@ class GitHUD(QWidget):
                 elif i[-1] == 'origin/master' and i[1] == '=' :
                     repo.set_need_pull(False)
 
+        self.check_pull_status(repo)
+
+    def check_pull_status(self, repo):
+        print(f"check_pull_status()")
+        path1 = repo.os_path + self.slash + '.git'+ self.slash + 'refs' + self.slash + 'heads' + self.slash + 'master'
+        path2 = repo.os_path + self.slash + '.git'+ self.slash + 'refs' + self.slash + 'remotes' + self.slash + 'origin' + self.slash + 'master'
+
+        # print(f'{path1}, {path2}')
+        if os.path.exists(path1) and os.path.exists(path2):
+            # print("exist")
+            f = open(path1, 'r')
+            data1 = f.readlines()
+            f.close()
+
+            f = open(path1, 'r')
+            data2 = f.readlines()
+            f.close()
+
+            if data1 != data2:
+                print(f'repo {repo.name} need to be updated! ---------------------------------------')
+
+
+
+
     def on_repo_selected(self, index):
         # print("GitHUD.on_repo_selected()")
         item = self.model.itemFromIndex(index)
