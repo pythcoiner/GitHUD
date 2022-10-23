@@ -78,9 +78,7 @@ class Bash(QThread):
         self.parent.disable_buttons()
         self.parent.start_progress()
         ret = subprocess.run(self.cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        self.parent.progress.end()
 
-        # self.end.emit()
         self.ret.emit(ret)
         self.is_running = False
         self.parent.enable_buttons()
