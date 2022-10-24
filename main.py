@@ -1083,12 +1083,14 @@ class GitHUD(QMainWindow):
             txt = f'delete fail!'
             self.set_label(txt, tooltip)
             self.update_branch()
+            self.check_single_status(self.path)
             return False
         else:
             txt = f'delete successfully'
             tooltip = cmd + '\n     ==>    \n' + ret.stdout
             self.set_label(txt, tooltip)
             self.update_branch()
+            self.check_single_status(self.path)
             return True
 
     def do_reset(self):
@@ -1100,12 +1102,14 @@ class GitHUD(QMainWindow):
             txt = f'reset fail!'
             self.set_label(txt, tooltip)
             self.update_branch()
+            self.check_single_status(self.path)
             return False
         else:
             txt = f'reset successfully'
             tooltip = cmd + '\n     ==>    \n' + ret.stdout
             self.set_label(txt, tooltip)
             self.update_branch()
+            self.check_single_status(self.path)
             return True
 
     def do_ignore(self,file):
@@ -1135,10 +1139,12 @@ class GitHUD(QMainWindow):
             print("a")
             os.remove(path)
             print("b")
+            self.check_single_status(self.path)
             return True
         except Exception as e:
             txt = f"cannot remove file!"
             self.set_label(txt, str(e))
+            self.check_single_status(self.path)
             return False
 
     def do_add(self,file):
