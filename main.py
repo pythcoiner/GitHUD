@@ -3,8 +3,8 @@ import sys
 import subprocess
 import logging
 import time
-import shutil
 import re
+import shutil
 
 from yaml import load, Loader
 
@@ -23,40 +23,6 @@ logging.basicConfig(format=FORMAT)
 log = logging.getLogger()
 log.setLevel(35)
 
-#
-# class Progress(QThread):
-#
-#     def __init__(self,parent):
-#         QThread.__init__(self)
-#         self.parent = parent
-#         self.stop = False
-#
-#     def __del__(self):
-#         self.wait()
-#
-#     def end(self):
-#         self.stop = True
-#         # print("Progress.end()")
-#     def run(self):
-#
-#         self.parent.ui.progress.setVisible(True)
-#
-#         self.stop = False
-#         i = 0
-#         char = ''
-#
-#         while not self.stop:
-#
-#
-#             time.sleep(0.1)
-#             self.parent.ui.progress.setValue(i)
-#
-#             i += 1
-#
-#             if i >100:
-#                 i = 0
-#
-#         self.parent.ui.progress.setVisible(False)
 
 class Bash(QThread):
     strt = Signal()
@@ -333,20 +299,19 @@ class GitHUD(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
         self.os = sys.platform
-
-        shutil.copyfile("main.py", "main.pyw")
+        path1 = os.fspath(Path(__file__).resolve().parent / "main.py")
+        path2 = os.fspath(Path(__file__).resolve().parent / "main.pyw")
+        shutil.copyfile(path1, path2)
 
         # linux shortcut
         if self.os == 'linux':
             path = os.fspath(Path(__file__).resolve().parent / "githud.desktop")
-
-
             if not os.path.exists(path):
                 f = open(path,'w')
                 f.write('[Desktop Entry]\n')
                 f.write('Name = GitHUD\n')
                 d = os.getcwd()
-                f.write(f'Exec=/user/bin/python3 {d}/main.py\n')
+                f.write(f'Exec=/usr/bin/python3 {d}/main.py\n')
                 f.write('Terminal=false\n')
                 f.write('Type=Application\n')
                 f.close()
@@ -375,6 +340,8 @@ class GitHUD(QMainWindow):
         self.build_gui()
         self.ui.setParent(self)
         self.setFixedSize(self.ui.size())
+
+        self.is_extended = False
 
         self.tree = self.ui.tree
         self.tree_list = []
@@ -433,6 +400,7 @@ class GitHUD(QMainWindow):
         self.ui.b_reset.clicked.connect(self.do_reset)
         self.ui.b_clean.clicked.connect(self.do_restore)
         self.ui.b_delete_file.clicked.connect(self.on_delete_file)
+        self.ui.b_extend.clicked.connect(self.on_b_extend)
 
         self.ui.b_pull.setParent(self)
         self.ui.b_push.setParent(self)
@@ -446,6 +414,7 @@ class GitHUD(QMainWindow):
         self.ui.b_reset.setParent(self)
         self.ui.b_clean.setParent(self)
         self.ui.b_delete_file.setParent(self)
+        self.ui.b_extend.setParent(self)
 
         self.ui.b_pull.setToolTip("Git pull from origin")
         self.ui.b_push.setToolTip("Git push to origin")
@@ -468,6 +437,8 @@ class GitHUD(QMainWindow):
         self.b_reset = os.fspath(Path(__file__).resolve().parent / "icon/disk--minus.png")
         self.b_clean = os.fspath(Path(__file__).resolve().parent / "icon/arrow-curve-180-left.png")
         self.b_delete_file = os.fspath(Path(__file__).resolve().parent / "icon/cross.png")
+        self.b_extend_right = os.fspath(Path(__file__).resolve().parent / "icon/navigation/navigation-000-button-white.png")
+        self.b_extend_left = os.fspath(Path(__file__).resolve().parent / "icon/navigation/navigation-180-button-white.png")
 
         self.ui.b_delete.setIcon(QIcon(self.b_delete))
         self.ui.b_update.setIcon(QIcon(self.b_update))
@@ -475,6 +446,7 @@ class GitHUD(QMainWindow):
         self.ui.b_reset.setIcon(QIcon(self.b_reset))
         self.ui.b_clean.setIcon(QIcon(self.b_clean))
         self.ui.b_delete_file.setIcon(QIcon(self.b_delete_file))
+        self.ui.b_extend.setIcon(QIcon(self.b_extend_right))
 
         self.ui.b_pull.setIcon(QIcon(self.b_pull))
         self.ui.b_push.setIcon(QIcon(self.b_push))
@@ -524,6 +496,29 @@ class GitHUD(QMainWindow):
         self.status_update_timer = Spin(self, 300)
         self.status_update_timer.ended.connect(self.auto_update_status)
         self.status_update_timer.start()
+
+    def on_b_extend(self):
+        extend = 190
+
+        if not self.is_extended:
+            self.is_extended = True
+            self.ui.b_extend.setIcon(QIcon(self.b_extend_left))
+            self.ui.setFixedWidth(self.ui.width() + extend)
+            self.setFixedWidth(self.width() + extend)
+            self.ui.folder_tree.setFixedWidth(self.ui.folder_tree.width() + extend)
+            self.ui.tree.setFixedWidth(self.ui.tree.width() + extend)
+            b = self.ui.b_extend
+            b.move(b.x() + extend, b.y())
+
+        else:
+            self.is_extended = False
+            self.ui.b_extend.setIcon(QIcon(self.b_extend_right))
+            self.ui.setFixedWidth(self.ui.width() - extend)
+            self.setFixedWidth(self.width() - extend)
+            self.ui.folder_tree.setFixedWidth(self.ui.folder_tree.width() - extend)
+            self.ui.tree.setFixedWidth(self.ui.tree.width() - extend)
+            b = self.ui.b_extend
+            b.move(b.x() - extend, b.y())
 
 
     def keyPressEvent(self, event):
