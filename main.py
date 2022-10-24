@@ -534,15 +534,16 @@ class GitHUD(QMainWindow):
             self.lock_buttons()
 
     def auto_update_changes(self):
+        pass
         # print("auto_update_change")
-        if self.repo_selected:
-            self.check_changes()
-        self.changes_update_timer.start()
+        # if self.repo_selected:
+        #     self.check_changes()
+        # self.changes_update_timer.start()
 
     def auto_update_status(self):
         print("auto_update_status")
         self.updates_repo_status()
-        self.changes_update_timer.start()
+        self.status_update_timer.start()
 
     def update_spin(self):
         if self.status_update.is_running:
