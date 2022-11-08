@@ -520,7 +520,6 @@ class GitHUD(QMainWindow):
             b = self.ui.b_extend
             b.move(b.x() - extend, b.y())
 
-
     def keyPressEvent(self, event):
         print(event.key())
         if event.key() == Qt.Key_Control and self.button_enabled:
@@ -661,11 +660,12 @@ class GitHUD(QMainWindow):
         self.update_single_status.emit()
 
     def on_repo_selected(self, index):
-        # print("GitHUD.on_repo_selected()")
+        print("GitHUD.on_repo_selected()")
         item = self.model.itemFromIndex(index)
         self.path = item.os_path
         section = self.path.split(self.slash)[-1]
         self.section = [section, self.path]
+        # self.ui.label_repo.setText(self.section[0])
         self.update_branch()
         self.repo_selected = True
 
@@ -858,7 +858,7 @@ class GitHUD(QMainWindow):
             txt = f'{self.section[0]} : {self.selected_branch}'
             if label:
                 self.set_label(txt)
-
+            self.ui.label_repo.setText(txt)
             self.update_brch_lock = False
             self.enable_buttons()
 
