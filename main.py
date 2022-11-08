@@ -11,7 +11,7 @@ from yaml import load, Loader
 from pathlib import Path
 
 from PySide2.QtWidgets import QApplication, QWidget, QLabel, QTableWidgetItem, QPushButton, QStyle, QMainWindow,\
-    QTreeWidget, QTreeWidgetItem, QHBoxLayout, QMessageBox
+    QTreeWidget, QTreeWidgetItem, QHBoxLayout, QMessageBox, QMenu
 from PySide2.QtCore import QFile, QThread, Signal, Qt, QTimer
 from PySide2 import QtCore
 from PySide2.QtGui import QIcon, QPixmap, QPalette, QColor, QClipboard, QGuiApplication, QPainter, QStandardItem, QStandardItemModel
@@ -346,9 +346,12 @@ class GitHUD(QMainWindow):
 
         self.ui.msg.setPlaceholderText("Commit msg or new branch name")
 
+        self.tree = self.ui.tree
+        self.tree.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.tree.customContextMenuRequested.connect(self.tree_context_menu)
+
         self.is_extended = False
 
-        self.tree = self.ui.tree
         self.tree_list = []
 
         if sys.platform == 'win32':
@@ -1542,6 +1545,15 @@ class GitHUD(QMainWindow):
         msg.setText(f"New branch name might contain your username!\nex: {user}_dev or dev_{user}")
         msg.setIcon(QMessageBox.Information)
         msg.exec_()
+
+    def tree_context_menu(self, index):
+        context_menu = QMenu(self.tree)
+        act1 = context_menu.addAction("Check diff")
+        action = context_menu.exec_(self.tree.mapToGlobal(index))
+        if action is not None:
+            if action == act1:
+                print(f'show diff of {self.tree.itemAt(index).text(0)}!')
+
 
 
 if __name__ == "__main__":
