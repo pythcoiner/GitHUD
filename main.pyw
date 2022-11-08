@@ -1546,13 +1546,15 @@ class GitHUD(QMainWindow):
         msg.setIcon(QMessageBox.Information)
         msg.exec_()
 
-    def tree_context_menu(self, index):
+    def tree_context_menu(self, position):
+
         context_menu = QMenu(self.tree)
         act1 = context_menu.addAction("Check diff")
-        action = context_menu.exec_(self.tree.mapToGlobal(index))
+        print(f"position={position}")
+        action = context_menu.exec_(self.tree.mapToGlobal(position))
         if action is not None:
             if action == act1:
-                print(f'show diff of {self.tree.itemAt(index).text(0)}!')
+                print(f'show diff of {self.tree.itemAt(position).text(0)}!')
 
 
 
