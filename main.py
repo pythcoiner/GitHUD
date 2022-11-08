@@ -10,13 +10,12 @@ from yaml import load, Loader
 
 from pathlib import Path
 
-from PySide2.QtWidgets import QApplication, QWidget, QLabel, QTableWidgetItem, QPushButton, QStyle, QMainWindow, QTreeWidget, QTreeWidgetItem, QHBoxLayout
+from PySide2.QtWidgets import QApplication, QWidget, QLabel, QTableWidgetItem, QPushButton, QStyle, QMainWindow,\
+    QTreeWidget, QTreeWidgetItem, QHBoxLayout, QMessageBox
 from PySide2.QtCore import QFile, QThread, Signal, Qt, QTimer
 from PySide2 import QtCore
 from PySide2.QtGui import QIcon, QPixmap, QPalette, QColor, QClipboard, QGuiApplication, QPainter, QStandardItem, QStandardItemModel
 from PySide2.QtUiTools import QUiLoader
-
-
 
 FORMAT = '%(message)s'
 logging.basicConfig(format=FORMAT)
@@ -329,6 +328,10 @@ class GitHUD(QMainWindow):
         self.config_file = open(path, 'r')
         self.config = load(self.config_file, Loader)
         self.directory_paths = self.config['path']
+        self.user = self.config['user']
+
+        if self.user == 'user':
+            self.popup_user()
 
         self.os = sys.platform
         if self.os == 'linux':
@@ -340,6 +343,8 @@ class GitHUD(QMainWindow):
         self.build_gui()
         self.ui.setParent(self)
         self.setFixedSize(self.ui.size())
+
+        self.ui.msg.setPlaceholderText("Commit msg or new branch name")
 
         self.is_extended = False
 
@@ -1012,18 +1017,6 @@ class GitHUD(QMainWindow):
 
         self.check_changes()
 
-    def on_new_branch(self):
-        name = self.ui.msg.text()
-        if name == '':
-            txt = f"need define a branch name!"
-            self.set_label(txt)
-        elif name not in self.branches :
-            self.do_make_branch(name)
-            self.ui.msg.clear()
-        else:
-            txt = f"branch already exist"
-            self.set_label(txt)
-
     def on_update(self):
         self.check_changes()
         self.update_changes()
@@ -1486,6 +1479,61 @@ class GitHUD(QMainWindow):
 
         self.branches = out2
 
+    def popup_user(self):
+        msg = QMessageBox()
+        msg.setWindowTitle("User not define!")
+        msg.setText("user param not define in user.conf file!")
+        msg.setIcon(QMessageBox.Information)
+        msg.exec_()
+
+    def on_new_branch(self):
+        name = self.ui.msg.text()
+        if name == '':
+            txt = f"need define a branch name!"
+            self.set_label(txt)
+            self.popup_enter_branch_name()
+        elif ' ' in name:
+            self.popup_space_in_branch_name()
+
+        elif self.user not in name:
+            self.popup_username_in_branch()
+
+        elif name not in self.branches :
+            self.do_make_branch(name)
+            self.ui.msg.clear()
+        else:
+            txt = f"branch already exist"
+            self.set_label(txt)
+
+    def popup_space_in_branch_name(self):
+        msg = QMessageBox()
+        msg.setWindowTitle("Spaces forbiben in branch name!")
+        msg.setText("Spaces are forbiden in space name! use '_' instead!\n Do you want to commit instead?")
+        msg.setIcon(QMessageBox.Information)
+        msg.exec_()
+
+    def popup_enter_commit_msg(self):
+        msg = QMessageBox()
+        msg.setWindowTitle("Enter commit msg!!")
+        msg.setText("Commit message is empty, please define a commit message!")
+        msg.setIcon(QMessageBox.Information)
+        msg.exec_()
+
+    def popup_enter_branch_name(self):
+        msg = QMessageBox()
+        msg.setWindowTitle("Enter branch name!")
+        msg.setText("Branch name is empty, please define a commit message!")
+        msg.setIcon(QMessageBox.Information)
+        msg.exec_()
+
+
+    def popup_username_in_branch(self):
+        user = self.user
+        msg = QMessageBox()
+        msg.setWindowTitle("Branch name!")
+        msg.setText(f"New branch name might contain your username!\nex: {user}_dev or dev_{user}")
+        msg.setIcon(QMessageBox.Information)
+        msg.exec_()
 
 
 if __name__ == "__main__":
