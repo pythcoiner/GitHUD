@@ -884,7 +884,8 @@ class GitHUD(QMainWindow):
                 elmt = QTreeWidgetItem(self.tree)
                 elmt.setFlags(elmt.flags() | Qt.ItemIsUserCheckable)
                 elmt.setText(0,i)
-                elmt.setToolTip(0, i)
+                diff = f"{i}\n{self.do_git_diff(i)}"
+                elmt.setToolTip(0, diff)
                 elmt.setCheckState(0, Qt.Unchecked)
                 self.tree_list.append(elmt)
 
@@ -1174,6 +1175,14 @@ class GitHUD(QMainWindow):
             self.ui.msg.setText('')
             self.check_single_status(self.path)
             return True
+
+    def do_git_diff(self, file):
+        cmd = f'cd {self.path} {self.bash_2_and} git diff {file}'
+        ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if ret.returncode != 0:
+            return 'git diff fail!'
+        else:
+            return ret.stdout
 
     def bash_ret(self, ret):
 
@@ -1525,7 +1534,6 @@ class GitHUD(QMainWindow):
         msg.setText("Branch name is empty, please define a commit message!")
         msg.setIcon(QMessageBox.Information)
         msg.exec_()
-
 
     def popup_username_in_branch(self):
         user = self.user
