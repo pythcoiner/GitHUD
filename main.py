@@ -1449,14 +1449,14 @@ class GitHUD(QMainWindow):
                 out.append(i)
         out = list(set(out))
 
-        if self.os == "windows":
-            changes = out
-            out = []
-            for i in changes:
-                if ' ' in i:
-                    out.append(f'"{i}"')
-                else:
-                    out.append(i)
+        # if self.os == "windows":
+        #     changes = out
+        #     out = []
+        #     for i in changes:
+        #         if ' ' in i:
+        #             out.append(f'"{i}"')
+        #         else:
+        #             out.append(i)
                     
         if path_none:
             for i in out:
