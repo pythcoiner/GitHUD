@@ -1368,9 +1368,10 @@ class GitHUD(QMainWindow):
         self.remotes = remotes
 
     def check_changes(self,path=None):
-        # print(f"check_changes({path})")
-
+        print(f"check_changes({path})")
+        path_none = False
         if path is None:
+            path_none = True
             name = self.section[0]
         else:
             name = path.split(self.slash)[-1]
@@ -1387,6 +1388,7 @@ class GitHUD(QMainWindow):
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=False, text=True)
 
         changes = ret.stdout.split('\n')
+        print("changes received")
         out = []
         for i in changes:
             is_lock = False
@@ -1436,8 +1438,19 @@ class GitHUD(QMainWindow):
 
             if i != '' and not is_lock and not is_ignored:
                 out.append(i)
-
         out = list(set(out))
+
+        if path_none:
+            for i in out:
+                print(f"    {i}")
+        # changes = out
+        # out = []
+        # for i in changes:
+        #     if ' ' in i:
+        #         out.append(f'"{i}"')
+        #     else:
+        #         out.append(i)
+
         if update:
             self.change_list = out
 
