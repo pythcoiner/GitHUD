@@ -1180,12 +1180,17 @@ class GitHUD(QMainWindow):
             return True
 
     def do_git_diff(self, file):
-        cmd = f'cd {self.path} {self.bash_2_and} git diff {file}'
-        ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        if ret.returncode != 0:
-            return 'git diff fail!'
+        if not '.ods' in file and not '.odg' in file and not '.odt' in file and not '.Z3PRT' in file \
+                and not '.Z3ASM' in file and not '.exe' in file and not '.Z3DRW' in file:
+            print(f"do_git_diff({file})")
+            cmd = f'cd {self.path} {self.bash_2_and} git diff {file}'
+            ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if ret.returncode != 0:
+                return 'git diff fail!'
+            else:
+                return ret.stdout
         else:
-            return ret.stdout
+            return "diff not done"
 
     def bash_ret(self, ret):
 
