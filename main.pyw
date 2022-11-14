@@ -963,7 +963,10 @@ class GitHUD(QMainWindow):
 
                 if (i.checkState(0) == Qt.CheckState.Checked) and i != self.tree_list[0]:
                     if ' ' in i.text(0):
-                        filename = f"'{i.text(0)}'"
+                        if self.os == 'linux':
+                            filename = f"'{i.text(0)}'"
+                        else:
+                            filename = f'"{i.text(0)}"'
                     else:
                         filename = i.text(0)
                     if not self.do_add(filename):
@@ -1181,7 +1184,8 @@ class GitHUD(QMainWindow):
 
     def do_git_diff(self, file):
         if not '.ods' in file and not '.odg' in file and not '.odt' in file and not '.Z3PRT' in file \
-                and not '.Z3ASM' in file and not '.exe' in file and not '.Z3DRW' in file:
+                and not '.Z3ASM' in file and not '.exe' in file and not '.Z3DRW' in file and not '.stp' in file \
+                and not '.step' in file:
             print(f"do_git_diff({file})")
             cmd = f'cd {self.path} {self.bash_2_and} git diff {file}'
             ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
