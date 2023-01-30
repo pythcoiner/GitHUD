@@ -1464,7 +1464,7 @@ class GitHUD(QMainWindow):
 
         if update:
             self.change_list = out
-
+            self.change_list.sort(key=str.lower)
             self.check_cached_changes()
 
             self.update_changes()
@@ -1487,6 +1487,7 @@ class GitHUD(QMainWindow):
                 out.append(i)
         if update:
             self.cached_change_list = out
+            self.cached_change_list.sort(key=str.lower)
         return out
 
     def process_branches(self):
