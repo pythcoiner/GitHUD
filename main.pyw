@@ -1185,7 +1185,7 @@ class GitHUD(QMainWindow):
     def do_git_diff(self, file):
         if not '.ods' in file and not '.odg' in file and not '.odt' in file and not '.Z3PRT' in file \
                 and not '.Z3ASM' in file and not '.exe' in file and not '.Z3DRW' in file and not '.stp' in file \
-                and not '.step' in file:
+                and not '.step' and not '.xrs' in file:
             print(f"do_git_diff({file})")
             cmd = f'cd {self.path} {self.bash_2_and} git diff {file}'
             ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -1464,7 +1464,7 @@ class GitHUD(QMainWindow):
 
         if update:
             self.change_list = out
-
+            self.change_list.sort(key=str.lower)
             self.check_cached_changes()
 
             self.update_changes()
@@ -1487,6 +1487,7 @@ class GitHUD(QMainWindow):
                 out.append(i)
         if update:
             self.cached_change_list = out
+            self.cached_change_list.sort(key=str.lower)
         return out
 
     def process_branches(self):
