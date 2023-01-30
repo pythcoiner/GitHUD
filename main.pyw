@@ -501,7 +501,7 @@ class GitHUD(QMainWindow):
 
         self.updates_repo_status()
 
-        self.status_update_timer = Spin(self, 300)
+        self.status_update_timer = Spin(self, 1800)
         self.status_update_timer.ended.connect(self.auto_update_status)
         self.status_update_timer.start()
 
