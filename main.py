@@ -594,6 +594,7 @@ class GitHUD(QMainWindow):
         """
         out = []
         root = self.ui.folder_tree.model().invisibleRootItem()
+        self.ui.folder_tree.setRootIndex(self.ui.folder_tree.model().index(0,0))
         for item in self.iter_items(root):
             out.append(item)
 
