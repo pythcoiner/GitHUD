@@ -594,6 +594,7 @@ class GitHUD(QMainWindow):
         """
         out = []
         root = self.ui.folder_tree.model().invisibleRootItem()
+        self.ui.folder_tree.setRootIndex(self.ui.folder_tree.model().index(0,0))
         for item in self.iter_items(root):
             out.append(item)
 
@@ -1185,7 +1186,7 @@ class GitHUD(QMainWindow):
     def do_git_diff(self, file):
         if not '.ods' in file and not '.odg' in file and not '.odt' in file and not '.Z3PRT' in file \
                 and not '.Z3ASM' in file and not '.exe' in file and not '.Z3DRW' in file and not '.stp' in file \
-                and not '.step' and not '.xrs' in file:
+                and not '.step' in file and not '.xrs' in file:
             print(f"do_git_diff({file})")
             cmd = f'cd {self.path} {self.bash_2_and} git diff {file}'
             ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
