@@ -297,7 +297,12 @@ class GitHUD(QMainWindow):
 
     def __init__(self):
         QMainWindow.__init__(self)
+        # super(GitHUD, self).__init__()
         self.os = sys.platform
+        icon = os.fspath(Path(__file__).resolve().parent / 'githud_icon.png')
+        print(icon)
+        self.setWindowIcon(QIcon(icon))
+        self.setWindowTitle('GitHUD')
         path1 = os.fspath(Path(__file__).resolve().parent / "main.py")
         path2 = os.fspath(Path(__file__).resolve().parent / "main.pyw")
         shutil.copyfile(path1, path2)
@@ -1608,7 +1613,6 @@ if __name__ == "__main__":
 
     window = GitHUD()
     # window.setParent(app)
-    window.setWindowTitle('GitHUD')
     window.show()
 
     clipboard = app.clipboard()
