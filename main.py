@@ -292,6 +292,11 @@ class Folder(QStandardItem):
 
 class GitHUD(QMainWindow):
 
+    # TODO: add git stash before change branch + git stash pop 0 after
+    # TODO:     - check if changes:
+    # TODO:         -if changes filtered => git stash + git stash pop 0
+    # TODO:         -if changes and not changes filtered => git reset
+
     in_progress = Signal()
     update_single_status = Signal()
 
