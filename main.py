@@ -1401,10 +1401,12 @@ class GitHUD(QMainWindow):
         else:
             update = False
 
-        cmd = f'cd {path} {self.bash_2_and} git ls-files -m -d -o --exclude-standard'
+        cmd = f'cd {path} {self.bash_2_and} git ls-files -m -d -o -z --exclude-standard'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=False, text=True)
 
-        changes = ret.stdout.split('\n')
+        changes = ret.stdout.split('\0')
+        if changes[-1] == '':
+            changes = changes[: -1]
         print("changes received")
         out = []
         for i in changes:
