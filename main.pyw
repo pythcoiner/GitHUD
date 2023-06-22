@@ -302,7 +302,7 @@ class GitHUD(QMainWindow):
         icon = os.fspath(Path(__file__).resolve().parent / 'githud_icon.png')
         print(icon)
         self.setWindowIcon(QIcon(icon))
-        self.setWindowTitle('GitHUD...')
+        self.setWindowTitle('GitHUD')
         path1 = os.fspath(Path(__file__).resolve().parent / "main.py")
         path2 = os.fspath(Path(__file__).resolve().parent / "main.pyw")
         shutil.copyfile(path1, path2)
@@ -328,12 +328,14 @@ class GitHUD(QMainWindow):
             f.write('---\n')
             f.write('path: [/home/path/]\n')
             f.write('user: user\n')
+            f.write('extend: 190\n')
             f.close()
 
         self.config_file = open(path, 'r')
         self.config = load(self.config_file, Loader)
         self.directory_paths = self.config['path']
         self.user = self.config['user']
+        self.extend = self.config['extend']
 
         if self.user == 'user':
             self.popup_user()
@@ -511,7 +513,7 @@ class GitHUD(QMainWindow):
         self.status_update_timer.start()
 
     def on_b_extend(self):
-        extend = 190
+        extend = self.extend
 
         if not self.is_extended:
             self.is_extended = True
@@ -1399,10 +1401,12 @@ class GitHUD(QMainWindow):
         else:
             update = False
 
-        cmd = f'cd {path} {self.bash_2_and} git ls-files -m -d -o --exclude-standard'
+        cmd = f'cd {path} {self.bash_2_and} git ls-files -m -d -o -z --exclude-standard'
         ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=False, text=True)
 
-        changes = ret.stdout.split('\n')
+        changes = ret.stdout.split('\0')
+        if changes[-1] == '':
+            changes = changes[: -1]
         print("changes received")
         out = []
         for i in changes:
@@ -1588,7 +1592,6 @@ class GitHUD(QMainWindow):
                 print(f'show diff of {self.tree.itemAt(position).text(0)}!')
 
 
-
 if __name__ == "__main__":
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
     app = QApplication([])
@@ -1618,12 +1621,4 @@ if __name__ == "__main__":
     clipboard = app.clipboard()
 
     sys.exit(app.exec_())
-
-
-
-
-
-
-
-
 
