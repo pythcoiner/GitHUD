@@ -329,6 +329,7 @@ class GitHUD(QMainWindow):
             f.write('path: [/home/path/]\n')
             f.write('user: user\n')
             f.write('extend: 190\n')
+            f.write('ignore: []\n')
             f.close()
 
         self.config_file = open(path, 'r')
@@ -336,6 +337,7 @@ class GitHUD(QMainWindow):
         self.directory_paths = self.config['path']
         self.user = self.config['user']
         self.extend = self.config['extend']
+        self.ignore = self.config['ignore']
 
         if self.user == 'user':
             self.popup_user()
@@ -599,13 +601,15 @@ class GitHUD(QMainWindow):
         List all items (Folders/Files) in self.ui.folder_tree
         :return: [items]
         """
-        out = []
-        root = self.ui.folder_tree.model().invisibleRootItem()
-        self.ui.folder_tree.setRootIndex(self.ui.folder_tree.model().index(0,0))
-        for item in self.iter_items(root):
-            out.append(item)
+        if self.ui.folder_tree.model():
+            out = []
+            root = self.ui.folder_tree.model().invisibleRootItem()
+            self.ui.folder_tree.setRootIndex(self.ui.folder_tree.model().index(0,0))
+            for item in self.iter_items(root):
+                out.append(item)
 
-        return out
+            return out
+        return []
 
     def expand_all(self):
         items = self.list_items()
@@ -825,33 +829,34 @@ class GitHUD(QMainWindow):
         self.projects = projects
 
     def build_tree(self):
+        if len(self.projects) > 0:
+            projects = self.projects
 
-        projects = self.projects
 
-        out = []
-        for i in projects:
-            for j in projects[i]:
-                original = j[1]
-                if j[1][0] == self.slash:
-                    j[1] = j[1][1:]
-                out.append([j[1], original])
+            out = []
+            for i in projects:
+                for j in projects[i]:
+                    original = j[1]
+                    if j[1][0] == self.slash:
+                        j[1] = j[1][1:]
+                    out.append([j[1], original])
 
-        projects = out
+            projects = out
 
-        home = projects[0][0].split(self.slash)[0]
+            home = projects[0][0].split(self.slash)[0]
 
-        self.root = Folder(home)
+            self.root = Folder(home)
 
-        for i in projects:
-            repo = self.root.get_folder(i[0])
-            repo.os_path = i[1]
-            repo.make_repo()
+            for i in projects:
+                repo = self.root.get_folder(i[0])
+                repo.os_path = i[1]
+                repo.make_repo()
 
-        self.model.appendRow(self.root)
-        self.ui.folder_tree.setModel(self.model)
-        self.model.sort(0)
+            self.model.appendRow(self.root)
+            self.ui.folder_tree.setModel(self.model)
+            self.model.sort(0)
 
-        self.expand_all()
+            self.expand_all()
 
     def update_branch(self, label=True):
         # print("update_branch()")
@@ -1410,36 +1415,20 @@ class GitHUD(QMainWindow):
         print("changes received")
         out = []
         for i in changes:
-            is_lock = False
+            # is_lock = False
             is_ignored = False
 
-            # hide libreoffice lock files
-            if i.split("/")[-1][:6] == '.~lock':
-                is_lock = True
-
-            # hide zw3d back files
-            if i.split("/")[-1][-6:] == '.z3bak':
-                is_lock = True
-
-            # hide back files
-            if i.split("/")[-1][-4:] == '.bak':
-                is_lock = True
-
-            # hide winrelais back files
-            if i.split("/")[-1][-4:] == '.xrs' and 'Sauvegarde' in i:
-                is_lock = True
-
-            # hide githud shortcut
-            if i.split("/")[-1] == 'githud.desktop':
-                is_lock = True
-
-            # hide githud conf file
-            if i.split("/")[-1] == 'user.conf':
-                is_lock = True
-
-            # hide githud .gitignore file
-            if name.lower() == 'githud' and i.split("/")[-1] == '.gitignore':
-                is_lock = True
+            for fil in self.ignore:
+                if type(fil) is str:
+                    if fil in i.split("/")[-1]:
+                        is_ignored = True
+                if type(fil) is list:
+                    count = 0
+                    for f in fil:
+                        if f in i.split("/")[-1]:
+                            count += 1
+                    if len(fil) == count:
+                        is_ignored = True
 
             # hide jetbrains config files (Pycharm, CLion, etc....)
             if i.split("/")[0] == '.idea':
@@ -1455,18 +1444,9 @@ class GitHUD(QMainWindow):
             if i.split("/")[0] == 'venv':
                 is_ignored = True
 
-            if i != '' and not is_lock and not is_ignored:
+            if i != '' and not is_ignored:
                 out.append(i)
         out = list(set(out))
-
-        # if self.os == "windows":
-        #     changes = out
-        #     out = []
-        #     for i in changes:
-        #         if ' ' in i:
-        #             out.append(f'"{i}"')
-        #         else:
-        #             out.append(i)
                     
         if path_none:
             for i in out:
